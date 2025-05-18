@@ -1,5 +1,5 @@
-CREATE database pharmacy;
-USE pharmacy;
+-- CREATE database pharmacy;
+USE medimanager;
 
 -- Table: supplier
 -- CREATE TABLE supplier (
@@ -43,18 +43,19 @@ USE pharmacy;
 -- );
 
 -- Table: staff
--- CREATE TABLE staff (
---     staff_id INTEGER PRIMARY KEY,
---     first_name TEXT,
---     last_name TEXT,
---     position TEXT,
---     phone TEXT,
---     email TEXT,
---     salary DECIMAL,
---     hire_date TIMESTAMP,
---     created_at TIMESTAMP,
---     updated_at TIMESTAMP
--- );
+CREATE TABLE staff (
+    staff_id INTEGER PRIMARY KEY,
+    staff_psw TEXT,
+    first_name TEXT,
+    last_name TEXT,
+    position TEXT,
+    phone TEXT,
+    email TEXT,
+    salary DECIMAL,
+    hire_date TIMESTAMP,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
 
 -- Table: customer
 -- CREATE TABLE customer (
@@ -150,7 +151,7 @@ USE pharmacy;
 -- (10, 'Azithromycin 250mg', 'Azithromycin', 'Zithromax', 3, 2, 35000.00, 30, '2025-08-01 00:00:00', 'BATCH010', '2023-07-10 14:00:00', '2023-07-10 14:00:00');
 
 -- Tìm kiếm thuốc
-SELECT * FROM Medicine WHERE name LIKE 'Aspirin 81mg';
+-- SELECT * FROM Medicine WHERE name LIKE 'Aspirin 81mg';
 
 -- Thuốc sắp hết hạn
 -- SELECT * FROM medicine WHERE expiration_date <= CURDATE() + INTERVAL 100 DAY;

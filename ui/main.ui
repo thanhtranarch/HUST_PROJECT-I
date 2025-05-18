@@ -137,6 +137,13 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <tabstops>
+  <tabstop>stock_detail</tabstop>
+  <tabstop>invoice_detail</tabstop>
+  <tabstop>warning_detail</tabstop>
+  <tabstop>invoice_create</tabstop>
+  <tabstop>export_report</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
