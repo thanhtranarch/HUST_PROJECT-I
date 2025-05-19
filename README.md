@@ -18,7 +18,7 @@ Xem ảnh giao diện trong thư mục `screenshot/`.
 
 - Python 3.x
 - PyQt6
-- SQLite (tuỳ chọn cho lưu trữ dữ liệu)
+- MySQL
 
 ## Cách chạy ứng dụng
 
@@ -27,23 +27,20 @@ Xem ảnh giao diện trong thư mục `screenshot/`.
 ```
 pip install PyQt6
 ```
+### 2. Thiết kế UI trên Qt Designer
 
-### 2. Chạy ứng dụng
-
+### 3. Load UI
 ```
-python main.py
-```
-
-Nếu bạn dùng file `.ui` từ Qt Designer, có thể cần chuyển sang `.py`:
-
-```
-pyuic6 main.ui -o main_ui.py
+class Login_w(QMainWindow):
+    def __init__(self):
+        super(Login_w,self).__init__()
+        uic.loadUi(ui_path, self)
 ```
 
 ## Cấu trúc thư mục
 
 ```
-pharmacy-app/
+MediManager/
 ├── main.py              # Tập tin khởi động ứng dụng
 ├── main.ui              # Giao diện thiết kế bằng Qt Designer
 ├── main_ui.py           # Giao diện chuyển từ .ui (nếu dùng)
@@ -67,10 +64,8 @@ pharmacy-app/
 - Tạo form đăng nhập phân quyền (admin/nhân viên)
 - Xuất báo cáo sang Excel/PDF
 
-## Giấy phép
-
-MIT License
 
 ## Tác giả
 
-TRẦN TIẾN THẠNH – HUST - Nhập môn Công nghệ phần mềm
+TRẦN TIẾN THẠNH – HUST - PROJECT I
+
