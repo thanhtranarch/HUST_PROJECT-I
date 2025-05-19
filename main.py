@@ -8,18 +8,60 @@ import MySQLdb as mysql_db
 import os
 import darkdetect
 # Path management
+current_dir = os.path.dirname(os.path.abspath(__file__))  
+
+
 def iconset():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    icon_dir = os.path.join(base_dir, "icon")
-    
+    icon_dir = os.path.join(current_dir, "icon")
     if darkdetect.isDark():
         icon_path = os.path.join(icon_dir, "app_icon_dark.png")
     else:
         icon_path = os.path.join(icon_dir, "app_icon_light.png")
     return icon_path
+
 icon_path = iconset()
 
-current_dir = os.path.dirname(os.path.abspath(__file__))  
+def load_data_into_table(table_widget, sql_query, column_names):
+    cursor.execute(sql_query)
+    rows = cursor.fetchall()
+
+    table_widget.setRowCount(len(rows))
+    table_widget.setColumnCount(len(column_names))
+    table_widget.setHorizontalHeaderLabels(column_names)
+
+    for row_idx, row_data in enumerate(rows):
+        for col_idx, value in enumerate(row_data):
+            item = QTableWidgetItem(str(value))
+            table_widget.setItem(row_idx, col_idx, item)
+            
+# Main Window
+class Main_w(QMainWindow):  
+    def __init__(self,staff_id=None):
+        super(Main_w,self).__init__()
+        ui_path = os.path.join(current_dir, 'ui', 'main.ui')
+        print(">>> main.ui path:", ui_path)
+        if not os.path.exists(ui_path):
+            raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
+        uic.loadUi(ui_path, self)
+        self.setWindowTitle("MediManager")
+        self.setWindowIcon(QtGui.QIcon(icon_path))
+        self.staff_id=staff_id
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+
+        # # Bảng hóa đơn trong ngày
+        
+        
+
+        # # Bảng thông tin thuốc
+        # load_data_into_table(self.stock_medicine,
+        #     "SELECT medicine_id, medicine_name, generic_name, stock_quantity, batch_number FROM medicine",
+        #     ["ID", "Name", "Unit", "Quantity", "Batch No.", "Price"]
+        # )
+        # #Bảng thuốc quá hạn
+
+    def closeEvent(self, event):
+        QApplication.quit()
+
 
 # Login Window
 class Login_w(QMainWindow):
@@ -28,6 +70,11 @@ class Login_w(QMainWindow):
         current_dir = os.path.dirname(os.path.abspath(__file__))  
         ui_path = os.path.join(current_dir, 'ui', 'login.ui')
         uic.loadUi(ui_path, self)
+        
+        self.setFixedSize(250, 140)
+        self.setWindowTitle("MediManager")
+        self.setWindowIcon(QtGui.QIcon(icon_path))
+        
         self.register_label.linkActivated.connect(self.goto_register)
         self.login_button.clicked.connect(self.login)
         self.login_button.setDefault(True)
@@ -35,7 +82,6 @@ class Login_w(QMainWindow):
     def login(self):
         un = self.login_user.text()
         psw = self.login_password.text()
-        
         try:
             # Connect to MySQL
             connect = mysql_db.connect('localhost','root','@Thanh070891','medimanager')
@@ -47,8 +93,21 @@ class Login_w(QMainWindow):
             connect.close()
             if result:
                 QMessageBox.information(self, "Login Success", "Đăng nhập thành công!")
-                widget.setCurrentIndex(2)
-                widget.showMaximized()
+                
+                self.main_window = Main_w(un)
+                self.main_window.show()
+                self.close()
+                # widget.addWidget(self.main_window)
+                # widget.setCurrentWidget(self.main_window)
+                # self.main_window.showMaximized()
+                
+                
+                # Cho phép thay đổi kích thước và bật nút maximize
+                # widget.setMinimumSize(800, 600)
+                # widget.setMaximumSize(QtCore.QSize(16777215, 16777215))
+                # widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                # widget.showMaximized()
+                
             else:
                 QMessageBox.warning(self, "Login Failed", "Sai tài khoản hoặc mật khẩu.")
         except mysql_db.Error as e:
@@ -61,14 +120,23 @@ class Login_w(QMainWindow):
             self.login()
             
     def goto_register(self):
-        widget.setCurrentIndex(1) 
-        widget.resize(250,220)
+        # widget.setCurrentIndex(1) 
+        # widget.setFixedSize(250,220)
+        self.register_window = Register_w()
+        self.register_window.show()
+        self.close()
+        
 # Register Window
 class Register_w(QMainWindow):
     def __init__(self):
         super(Register_w,self).__init__()   
         ui_path = os.path.join(current_dir, 'ui', 'register.ui')
         uic.loadUi(ui_path, self)
+        # widget.setFixedSize(250,220)
+        self.setFixedSize(250, 220)
+        self.setWindowTitle("MediManager")
+        self.setWindowIcon(QtGui.QIcon(icon_path))
+        
         self.login_label.linkActivated.connect(self.goto_login)
         self.register_button.clicked.connect(self.register)
         self.register_button.setDefault(True)
@@ -128,32 +196,38 @@ class Register_w(QMainWindow):
             self.register()
             
     def goto_login(self):
-        widget.setCurrentIndex(0)
-        widget.resize(250,140)
+        self.login_window = Login_w()
+        self.login_window.show()
+        self.close()
+        # widget.setCurrentIndex(0)
+        # widget.setFixedSize(250,140)
         
-# Main Window
-class Main_w(QMainWindow):  
-    def __init__(self):
-        super(Main_w,self).__init__()
-        ui_path = os.path.join(current_dir, 'ui', 'main.ui')
-        uic.loadUi(ui_path, self)
-        self.showFullScreen()
 
 
 # Program starts here
-app = QApplication(sys.argv)
-widget = QtWidgets.QStackedWidget()
-Login_f = Login_w()
-Register_f = Register_w()
-Main_f = Main_w()
-widget.setWindowTitle("MediManager")
-widget.setWindowIcon(QtGui.QIcon(icon_path))
-widget.addWidget(Login_f)
-widget.addWidget(Register_f)
-widget.addWidget(Main_f)
-widget.setCurrentIndex(0)
-widget.show()
-app.exec()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    login_window = Login_w()
+    login_window.show()
+    sys.exit(app.exec())
+# app = QApplication(sys.argv)
+
+# widget = QtWidgets.QStackedWidget()
+# Login_f = Login_w()
+# Register_f = Register_w()
+
+# widget.addWidget(Login_f)
+# widget.addWidget(Register_f)
+# widget.setCurrentWidget(Login_f)
+
+# widget.setFixedSize(250,140)
+
+# widget.setWindowTitle("MediManager")
+# widget.setWindowIcon(QtGui.QIcon(icon_path))
+# # widget.setCurrentIndex(0)
+
+# widget.show()
+# app.exec()
 
 
 

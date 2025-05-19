@@ -4,11 +4,11 @@ USE medimanager;
 -- Table: supplier
 -- CREATE TABLE supplier (
 --     supplier_id INTEGER PRIMARY KEY,
---     name TEXT,
+--     suppier_name TEXT,
 --     contact_name TEXT,
 --     contact_phone TEXT,
 --     contact_email TEXT,
---     address TEXT,
+--     suppier_address TEXT,
 --     payment_terms TEXT,
 --     created_at TIMESTAMP,
 --     updated_at TIMESTAMP
@@ -17,8 +17,8 @@ USE medimanager;
 -- Table: category
 --  CREATE TABLE category (
 -- 	category_id INTEGER PRIMARY KEY,
--- 	name TEXT,
--- 	description TEXT,
+-- 	category_name TEXT,
+-- 	category_description TEXT,
 -- 	created_at TIMESTAMP,
 -- 	update_at TIMESTAMP
 -- );
@@ -27,12 +27,13 @@ USE medimanager;
 -- DROP TABLE 	medicine;
 -- CREATE TABLE medicine (
 --     medicine_id INTEGER PRIMARY KEY,
---     name TEXT,
+--     medicine_name TEXT,
 --     generic_name TEXT,
 --     brand_name TEXT,
 --     supplier_id INTEGER,
 --     category_id INTEGER,
 --     unit_price DECIMAL,
+--     sale_price DECIMAL,
 --     stock_quantity INTEGER,
 --     expiration_date TIMESTAMP,
 --     batch_number TEXT,
@@ -43,27 +44,36 @@ USE medimanager;
 -- );
 
 -- Table: staff
-CREATE TABLE staff (
-    staff_id INTEGER PRIMARY KEY,
-    staff_psw TEXT,
-    first_name TEXT,
-    last_name TEXT,
-    position TEXT,
-    phone TEXT,
-    email TEXT,
-    salary DECIMAL,
-    hire_date TIMESTAMP,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-);
+-- CREATE TABLE staff (
+--     staff_id INTEGER PRIMARY KEY,
+--     staff_psw TEXT,
+--     first_name TEXT,
+--     last_name TEXT,
+--     position TEXT,
+--     phone TEXT,
+--     email TEXT,
+--     salary DECIMAL,
+--     hire_date TIMESTAMP,
+--     created_at TIMESTAMP,
+--     updated_at TIMESTAMP
+-- );
+-- ALTER TABLE staff
+-- MODIFY staff_id VARCHAR(10);
+-- INSERT INTO staff (
+--     staff_id, staff_psw, first_name, last_name, position, phone, email, salary, hire_date, created_at, updated_at
+-- ) VALUES
+-- ('staff1', 'staff1', 'Nguyen', 'Van A', 'Quản lý', '0909123456', 'a@example.com', 15000000, '2022-01-01 08:00:00', NOW(), NOW()),
+-- ('staff2', 'staff2', 'Tran', 'Thi B', 'Dược sĩ', '0909234567', 'b@example.com', 12000000, '2022-02-01 08:00:00', NOW(), NOW()),
+-- ('staff3', 'staff3', 'Le', 'Van C', 'Dược sĩ', '0909345678', 'c@example.com', 11000000, '2022-03-01 08:00:00', NOW(), NOW()),
+-- ('staff4', 'staff4', 'Pham', 'Thi D', 'Nhân viên bán thuốc', '0909456789', 'd@example.com', 10000000, '2022-04-01 08:00:00', NOW(), NOW()),
+-- ('staff5', 'staff5', 'Hoang', 'Van E', 'Kế toán', '0909567890', 'e@example.com', 13000000, '2022-05-01 08:00:00', NOW(), NOW());
 
 -- Table: customer
 -- CREATE TABLE customer (
 --     customer_id INTEGER PRIMARY KEY,
---     name TEXT,
---     phone VARCHAR(11),
---     email TEXT,
---     address TEXT,
+--     customer_name TEXT,
+--     customer_phone VARCHAR(11),
+--     customer_email TEXT,
 --     created_at TIMESTAMP,
 --     updated_at TIMESTAMP
 -- );
@@ -72,7 +82,7 @@ CREATE TABLE staff (
 --     invoice_id INTEGER PRIMARY KEY,
 --     invoice_date TIMESTAMP,
 --     customer_id INTEGER,
---     staff_id INTEGER,
+--     staff_id VARCHAR(10),
 --     total_amount DECIMAL,
 --     payment_status TEXT,
 --     due_date TIMESTAMP,
@@ -82,29 +92,29 @@ CREATE TABLE staff (
 --     FOREIGN KEY (staff_id) REFERENCES staff(staff_id)
 -- );
 -- Table: invoice_detail
--- CREATE TABLE invoice_detail (
---     invoice_detail_id INTEGER PRIMARY KEY,
---     invoice_id INTEGER,
---     medicine_id INTEGER,
---     quantity INTEGER,
---     unit_price DECIMAL,
---     total_price DECIMAL,
---     FOREIGN KEY (invoice_id) REFERENCES invoice(invoice_id),
---     FOREIGN KEY (medicine_id) REFERENCES medicine(medicine_id)
--- );
+CREATE TABLE invoice_detail (
+    invoice_detail_id INTEGER PRIMARY KEY,
+    invoice_id INTEGER,
+    medicine_id INTEGER,
+    quantity INTEGER,
+    sale_price DECIMAL,
+    total_price DECIMAL,
+    FOREIGN KEY (invoice_id) REFERENCES invoice(invoice_id),
+    FOREIGN KEY (medicine_id) REFERENCES medicine(medicine_id)
+);
 -- Table: stock_transaction
--- CREATE TABLE stock_transaction (
---     transaction_id INTEGER PRIMARY KEY,
---     medicine_id INTEGER,
---     transaction_type TEXT,
---     quantity INTEGER,
---     transaction_date TIMESTAMP,
---     staff_id INTEGER,
---     created_at TIMESTAMP,
---     updated_at TIMESTAMP,
---     FOREIGN KEY (medicine_id) REFERENCES medicine(medicine_id),
---     FOREIGN KEY (staff_id) REFERENCES staff(staff_id)
--- );
+CREATE TABLE stock_transaction (
+    transaction_id INTEGER PRIMARY KEY,
+    medicine_id INTEGER,
+    transaction_type TEXT,
+    quantity INTEGER,
+    transaction_date TIMESTAMP,
+    staff_id VARCHAR(10),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    FOREIGN KEY (medicine_id) REFERENCES medicine(medicine_id),
+    FOREIGN KEY (staff_id) REFERENCES staff(staff_id)
+);
 -- Table: stock_transaction_detail
 -- CREATE TABLE stock_transaction_detail (
 --     transaction_detail_id INTEGER PRIMARY KEY,

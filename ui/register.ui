@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>sign in</string>
+     <string>sign up</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="staff_id">
