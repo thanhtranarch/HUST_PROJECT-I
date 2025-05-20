@@ -5,6 +5,7 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 import sys
 import MySQLdb as mysql_db
+from DBManager import DBManager
 import os
 import darkdetect
 # Path management
@@ -33,7 +34,29 @@ def load_data_into_table(table_widget, sql_query, column_names):
         for col_idx, value in enumerate(row_data):
             item = QTableWidgetItem(str(value))
             table_widget.setItem(row_idx, col_idx, item)
-            
+# # Connect DataBase
+# class DBManager:
+#     def __int__(self):
+#         self.connection = None
+#         self.cursor = None
+        
+#     def connect(self):
+#         self.connection = mysql_db.connector.connect('localhost','root','@Thanh070891','medimanager')          
+#         self.cursor = self.connection.cursor()
+#         return self.cursor
+    
+#     def execute (self,query, params = None):
+#         self.cursor.excute(query, params or ())
+#         return self.cursor
+    
+#     def commit(self):
+#         self.connection.commit()
+        
+#     def close(self):
+#         if self.cursor:
+#             self.cursor.close()
+#         if self.connection:
+#             self.connection.close()
 # Main Window
 class Main_w(QMainWindow):  
     def __init__(self,staff_id=None):
@@ -47,7 +70,7 @@ class Main_w(QMainWindow):
         self.setWindowIcon(QtGui.QIcon(icon_path))
         self.staff_id=staff_id
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
-
+        self.actionLog_out.triggered.connect(self.goto_login)
         # # Bảng hóa đơn trong ngày
         
         
@@ -61,7 +84,10 @@ class Main_w(QMainWindow):
 
     def closeEvent(self, event):
         QApplication.quit()
-
+    def goto_login(self):
+        self.login_window = Login_w()
+        self.login_window.show()
+        self.hide()
 
 # Login Window
 class Login_w(QMainWindow):
@@ -79,13 +105,15 @@ class Login_w(QMainWindow):
         self.login_button.clicked.connect(self.login)
         self.login_button.setDefault(True)
 
+
     def login(self):
         un = self.login_user.text()
         psw = self.login_password.text()
         try:
+            
             # Connect to MySQL
-            connect = mysql_db.connect('localhost','root','@Thanh070891','medimanager')
-            cursor = connect.cursor()
+            db = DBManager()
+            cursor = db.connect()
             sql = 'SELECT staff_id, staff_psw FROM staff WHERE staff_id = %s AND staff_psw = %s'
             cursor.execute(sql, (un, psw))
             result = cursor.fetchone()
@@ -97,16 +125,6 @@ class Login_w(QMainWindow):
                 self.main_window = Main_w(un)
                 self.main_window.show()
                 self.close()
-                # widget.addWidget(self.main_window)
-                # widget.setCurrentWidget(self.main_window)
-                # self.main_window.showMaximized()
-                
-                
-                # Cho phép thay đổi kích thước và bật nút maximize
-                # widget.setMinimumSize(800, 600)
-                # widget.setMaximumSize(QtCore.QSize(16777215, 16777215))
-                # widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-                # widget.showMaximized()
                 
             else:
                 QMessageBox.warning(self, "Login Failed", "Sai tài khoản hoặc mật khẩu.")
@@ -199,9 +217,6 @@ class Register_w(QMainWindow):
         self.login_window = Login_w()
         self.login_window.show()
         self.close()
-        # widget.setCurrentIndex(0)
-        # widget.setFixedSize(250,140)
-        
 
 
 # Program starts here
@@ -210,24 +225,6 @@ if __name__ == '__main__':
     login_window = Login_w()
     login_window.show()
     sys.exit(app.exec())
-# app = QApplication(sys.argv)
-
-# widget = QtWidgets.QStackedWidget()
-# Login_f = Login_w()
-# Register_f = Register_w()
-
-# widget.addWidget(Login_f)
-# widget.addWidget(Register_f)
-# widget.setCurrentWidget(Login_f)
-
-# widget.setFixedSize(250,140)
-
-# widget.setWindowTitle("MediManager")
-# widget.setWindowIcon(QtGui.QIcon(icon_path))
-# # widget.setCurrentIndex(0)
-
-# widget.show()
-# app.exec()
 
 
 

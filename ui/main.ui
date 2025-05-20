@@ -33,6 +33,9 @@
          <property name="rowCount">
           <number>0</number>
          </property>
+         <attribute name="horizontalHeaderCascadingSectionResizes">
+          <bool>true</bool>
+         </attribute>
          <column>
           <property name="text">
            <string>Invoice ID</string>
@@ -73,19 +76,6 @@
       </layout>
      </widget>
     </item>
-    <item row="1" column="0">
-     <spacer name="horizontalSpacer_7">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>124</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
     <item row="1" column="1" rowspan="2" colspan="4">
      <widget class="QGroupBox" name="groupBox">
       <property name="enabled">
@@ -123,6 +113,9 @@
           </item>
           <item row="0" column="0" colspan="4">
            <widget class="QTableWidget" name="outdate_medicine">
+            <attribute name="horizontalHeaderCascadingSectionResizes">
+             <bool>true</bool>
+            </attribute>
             <column>
              <property name="text">
               <string>ID</string>
@@ -210,8 +203,14 @@
        <item row="0" column="0">
         <widget class="QTableWidget" name="stock_medicine">
          <property name="columnCount">
-          <number>8</number>
+          <number>6</number>
          </property>
+         <attribute name="horizontalHeaderCascadingSectionResizes">
+          <bool>true</bool>
+         </attribute>
+         <attribute name="verticalHeaderCascadingSectionResizes">
+          <bool>false</bool>
+         </attribute>
          <column>
           <property name="text">
            <string>ID</string>
@@ -224,22 +223,12 @@
          </column>
          <column>
           <property name="text">
-           <string>Status</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Form</string>
+           <string>Unit</string>
           </property>
          </column>
          <column>
           <property name="text">
            <string>Quantity</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Unit</string>
           </property>
          </column>
          <column>
@@ -264,19 +253,6 @@
       </layout>
      </widget>
     </item>
-    <item row="2" column="5">
-     <spacer name="horizontalSpacer_6">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>124</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
     <item row="3" column="2">
      <widget class="QPushButton" name="export_report">
       <property name="text">
@@ -291,7 +267,7 @@
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>477</width>
+        <width>685</width>
         <height>20</height>
        </size>
       </property>
@@ -326,6 +302,32 @@
       </property>
      </spacer>
     </item>
+    <item row="0" column="5" rowspan="4">
+     <spacer name="horizontalSpacer_6">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>582</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="0" column="0" rowspan="4">
+     <spacer name="horizontalSpacer_7">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>582</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -354,6 +356,7 @@
     <addaction name="actionStaff"/>
     <addaction name="actionIntraction"/>
     <addaction name="actionSupplier"/>
+    <addaction name="actionLog_out"/>
    </widget>
    <addaction name="menuGeneral_Management"/>
    <addaction name="menuMaindashboard"/>
@@ -386,6 +389,11 @@
   <action name="actionIntraction">
    <property name="text">
     <string>Stock</string>
+   </property>
+  </action>
+  <action name="actionLog_out">
+   <property name="text">
+    <string>⮌ Log out</string>
    </property>
   </action>
  </widget>
