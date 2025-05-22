@@ -351,10 +351,10 @@
     </property>
     <addaction name="separator"/>
     <addaction name="actionCustomer"/>
-    <addaction name="actionMadicine"/>
+    <addaction name="actionMedicine"/>
     <addaction name="actionInvoice"/>
     <addaction name="actionStaff"/>
-    <addaction name="actionIntraction"/>
+    <addaction name="actionStock"/>
     <addaction name="actionSupplier"/>
     <addaction name="actionLog_out"/>
    </widget>
@@ -371,9 +371,9 @@
     <string>Staff</string>
    </property>
   </action>
-  <action name="actionMadicine">
+  <action name="actionMedicine">
    <property name="text">
-    <string>Madicine</string>
+    <string>Medicine</string>
    </property>
   </action>
   <action name="actionInvoice">
@@ -386,7 +386,7 @@
     <string>Supplier</string>
    </property>
   </action>
-  <action name="actionIntraction">
+  <action name="actionStock">
    <property name="text">
     <string>Stock</string>
    </property>

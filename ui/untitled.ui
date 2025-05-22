@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>250</width>
-    <height>107</height>
+    <width>255</width>
+    <height>117</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -113,11 +113,6 @@ p, li { white-space: pre-wrap; }
    </property>
   </widget>
  </widget>
- <tabstops>
-  <tabstop>login_user</tabstop>
-  <tabstop>login_password</tabstop>
-  <tabstop>login_button</tabstop>
- </tabstops>
  <resources/>
  <connections/>
 </ui>
