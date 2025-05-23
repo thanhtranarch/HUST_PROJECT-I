@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>335</width>
-    <height>610</height>
+    <height>581</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>-20</x>
-     <y>570</y>
+     <y>540</y>
      <width>341</width>
      <height>32</height>
     </rect>
@@ -33,9 +33,9 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>323</y>
+     <y>350</y>
      <width>47</width>
-     <height>16</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
@@ -46,9 +46,9 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>351</y>
+     <y>320</y>
      <width>47</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
@@ -72,7 +72,7 @@
     </font>
    </property>
    <property name="text">
-    <string>SUPPLIER INFORMATION</string>
+    <string>MEDICINE INFORMATION</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -91,7 +91,7 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap>../icon/supplier_icon.png</pixmap>
+    <pixmap>../icon/medicine_icon.png</pixmap>
    </property>
    <property name="scaledContents">
     <bool>true</bool>
@@ -116,20 +116,20 @@
     <string/>
    </property>
   </widget>
-  <widget class="QLabel" name="label_6">
+  <widget class="QLabel" name="Phone_3">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>434</y>
+     <y>410</y>
      <width>47</width>
-     <height>16</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>Contact</string>
+    <string>Phone</string>
    </property>
   </widget>
-  <widget class="QLabel" name="Address">
+  <widget class="QLabel" name="Position">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -139,46 +139,36 @@
     </rect>
    </property>
    <property name="text">
-    <string>Address</string>
+    <string>Position</string>
    </property>
   </widget>
-  <widget class="QLabel" name="Phone">
+  <widget class="QLabel" name="Salary">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>464</y>
+     <y>470</y>
      <width>47</width>
-     <height>16</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>Phone</string>
+    <string>Salary</string>
    </property>
   </widget>
   <widget class="QLabel" name="Email">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>491</y>
+     <y>440</y>
      <width>47</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
     <string>Email</string>
    </property>
   </widget>
-  <widget class="QTextEdit" name="supplier_address">
-   <property name="geometry">
-    <rect>
-     <x>80</x>
-     <y>380</y>
-     <width>241</width>
-     <height>41</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="supplier_id">
+  <widget class="QLineEdit" name="staff_name">
    <property name="geometry">
     <rect>
      <x>80</x>
@@ -188,7 +178,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLineEdit" name="supplier_name">
+  <widget class="QLineEdit" name="staff_id">
    <property name="geometry">
     <rect>
      <x>80</x>
@@ -198,60 +188,67 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLineEdit" name="contact_name">
+  <widget class="QLineEdit" name="staff_phone">
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>430</y>
+     <y>410</y>
      <width>241</width>
      <height>20</height>
     </rect>
    </property>
   </widget>
-  <widget class="QLineEdit" name="contact_phone">
+  <widget class="QLineEdit" name="staff_email">
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>460</y>
+     <y>440</y>
      <width>241</width>
      <height>20</height>
     </rect>
    </property>
   </widget>
-  <widget class="QLineEdit" name="contact_email">
+  <widget class="QLineEdit" name="staff_salary">
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>490</y>
+     <y>470</y>
      <width>241</width>
      <height>20</height>
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="Email_2">
-   <property name="enabled">
-    <bool>false</bool>
+  <widget class="QLineEdit" name="staff_position">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>380</y>
+     <width>241</width>
+     <height>20</height>
+    </rect>
    </property>
+  </widget>
+  <widget class="QLineEdit" name="contact_email_2">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>500</y>
+     <width>241</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="HireDate">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>521</y>
-     <width>47</width>
-     <height>20</height>
+     <y>500</y>
+     <width>61</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>Payment</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="comboBox_payment_terms">
-   <property name="geometry">
-    <rect>
-     <x>80</x>
-     <y>520</y>
-     <width>241</width>
-     <height>22</height>
-    </rect>
+    <string>Hire Date</string>
    </property>
   </widget>
   <zorder>label_5</zorder>
@@ -260,27 +257,25 @@
   <zorder>Name</zorder>
   <zorder>label_3</zorder>
   <zorder>Image</zorder>
-  <zorder>label_6</zorder>
-  <zorder>Address</zorder>
-  <zorder>Phone</zorder>
+  <zorder>Phone_3</zorder>
+  <zorder>Position</zorder>
+  <zorder>Salary</zorder>
   <zorder>Email</zorder>
-  <zorder>supplier_address</zorder>
-  <zorder>supplier_id</zorder>
-  <zorder>supplier_name</zorder>
-  <zorder>contact_name</zorder>
-  <zorder>contact_phone</zorder>
-  <zorder>contact_email</zorder>
-  <zorder>Email_2</zorder>
-  <zorder>comboBox_payment_terms</zorder>
+  <zorder>staff_name</zorder>
+  <zorder>staff_id</zorder>
+  <zorder>staff_phone</zorder>
+  <zorder>staff_email</zorder>
+  <zorder>staff_salary</zorder>
+  <zorder>staff_position</zorder>
+  <zorder>contact_email_2</zorder>
+  <zorder>HireDate</zorder>
  </widget>
  <tabstops>
-  <tabstop>supplier_id</tabstop>
-  <tabstop>supplier_name</tabstop>
-  <tabstop>supplier_address</tabstop>
-  <tabstop>contact_name</tabstop>
-  <tabstop>contact_phone</tabstop>
-  <tabstop>contact_email</tabstop>
-  <tabstop>comboBox_payment_terms</tabstop>
+  <tabstop>staff_name</tabstop>
+  <tabstop>staff_id</tabstop>
+  <tabstop>staff_phone</tabstop>
+  <tabstop>staff_email</tabstop>
+  <tabstop>staff_salary</tabstop>
  </tabstops>
  <resources/>
  <connections>

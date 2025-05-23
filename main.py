@@ -117,6 +117,7 @@ class Supplier_w(QMainWindow):
         self.setWindowTitle("Supplier Management")
         self.setWindowIcon(QtGui.QIcon(icon_path))
         self.load_supplier_data()
+        self.back_button.clicked.connect(self.goto_main)
 
     def load_supplier_data(self):
         try:
@@ -189,15 +190,11 @@ class Supplier_w(QMainWindow):
                 print(f"Opening details for supplier ID: {supplier_id}")
                 self.show_supplier_detail(supplier_id)
 
-    def goto_staff(self):
-        self.staff_window = Staff_w(self.context)
-        self.staff_window.show()
+    def goto_main(self):
+        self.main_window = Main_w(self.context)
+        self.main_window.show()
         self.hide()
 
-    def goto_customer(self):
-        self.customer_window = Customer_w(self.context)
-        self.customer_window.show()
-        self.hide()
 class SupplierInformation_w(QDialog):
     def __init__(self, context, supplier_id):
         super(SupplierInformation_w, self).__init__()
@@ -221,7 +218,6 @@ class SupplierInformation_w(QDialog):
                         FROM supplier WHERE supplier_id = %s"""
             db.execute(sql, (supplier_id_value,))
             result = db.fetchone()
-            print(f"Query result: {result}")
 
             if result:
                 self.supplier_id.setText(str(result[0]))
@@ -277,7 +273,7 @@ class Customer_w(QMainWindow):
 
 # Staff Window
 class Staff_w(QMainWindow):
-    def __init__(self, context, staff_id=None):
+    def __init__(self, context):
         super(Staff_w, self).__init__()
         self.context = context
         ui_path = os.path.join(current_dir, 'ui', 'staff.ui')
@@ -287,24 +283,125 @@ class Staff_w(QMainWindow):
         uic.loadUi(ui_path, self)
         self.setWindowTitle("Staff Management")
         self.setWindowIcon(QtGui.QIcon(icon_path))
-        self.staff_id = staff_id
-        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
-        self.actionSave.triggered.connect(self.save_staff_data)
+        self.load_staff_data()
+        self.back_button.clicked.connect(self.goto_main)
 
-    def save_staff_data(self):
-        name = self.lineEdit_Name.text()
-        username = self.lineEdit_Username.text()
-        password = self.lineEdit_Password.text()
 
-        sql_query = f"INSERT INTO staff (name, username, password) VALUES ('{name}', '{username}', '{password}')"
-        self.context.cursor.execute(sql_query)
-        self.context.connection.commit()
+    def load_staff_data(self):
+        try:
+            db = self.context.db_manager
+            sql= """SELECT staff_id, staff_name, staff_position, created_at, updated_at FROM staff"""
+            db.execute(sql)
+            results = db.fetchall()
 
-    def goto_customer(self):
-        self.customer_window = Customer_w(self.context)
-        self.customer_window.show()
+            # Cập nhật TableWidget
+            self.tableWidget.setRowCount(len(results))
+            self.tableWidget.setColumnCount(len(db.execute(sql).description)+1)
+            # self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+            self.tableWidget.setColumnWidth(0, 50)  
+            self.tableWidget.setColumnWidth(1, 200)  
+            self.tableWidget.setColumnWidth(2, 100) 
+            self.tableWidget.setColumnWidth(3, 150) 
+            self.tableWidget.setColumnWidth(4, 150) 
+            self.tableWidget.setColumnWidth(5, 200) 
+            self.tableWidget.cellClicked.connect(self.handle_cell_click)
+
+            column_count = self.tableWidget.columnCount()
+
+            for row_idx, row_data in enumerate(results):
+                staff_id = row_data[0]  # Giữ lại để dùng UserRole
+
+                for col_idx in range(column_count):
+                    if col_idx < len(row_data):
+                        value = row_data[col_idx]
+                        item = QTableWidgetItem(str(value))
+
+                        # Staff Name (hiển thị với underline)
+                        if col_idx == 1 or col_idx == 2:
+                            font = QFont()
+                            item.setFont(font)
+                            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                            item.setToolTip("Click để xem chi tiết nhân viên")
+                            item.setData(Qt.ItemDataRole.UserRole, staff_id)
+
+                        elif col_idx == 0:
+                            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+
+                        self.tableWidget.setItem(row_idx, col_idx, item)
+
+                    else:
+                        # Cột "View Details"
+                        detail_item = QTableWidgetItem("View Details")
+                        font = QFont()
+                        font.setUnderline(True)
+                        detail_item.setFont(font)
+                        detail_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                        detail_item.setData(Qt.ItemDataRole.UserRole, staff_id)
+                        detail_item.setToolTip("Click để xem chi tiết nhân viên")
+                        self.tableWidget.setItem(row_idx, col_idx, detail_item)
+        except Exception as e:
+            print("Lỗi khi tải dữ liệu:", e)
+    
+    def show_staff_detail(self, staff_id):
+        detail_dialog = StaffInformation_w(self.context, staff_id)
+        detail_dialog.exec()
+    
+    def handle_cell_click(self, row, column):
+        if column == 1 or column == 5:
+            item = self.tableWidget.item(row, column)
+            if item is None:
+                print("Item not found")
+                return
+            staff_id = item.data(Qt.ItemDataRole.UserRole)
+            if staff_id:
+                print(f"Opening details for staff ID: {staff_id}")
+                self.show_staff_detail(staff_id)
+    def goto_main(self):
+        self.main_window = Main_w(self.context)
+        self.main_window.show()
         self.hide()
 
+class StaffInformation_w(QDialog):
+    def __init__(self, context, staff_id):
+        super(StaffInformation_w, self).__init__()
+        self.context = context
+        self.staff_id_value = staff_id
+        ui_path = os.path.join(current_dir, 'ui', 'staff_information.ui')
+        print(">>> staff_information.ui' path:", ui_path)
+        if not os.path.exists(ui_path):
+            raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
+        uic.loadUi(ui_path, self)
+        self.setWindowTitle("Staff Management")
+        self.setWindowIcon(QtGui.QIcon(icon_path))
+        self.load_staff_data(self.staff_id_value)
+        
+
+    def load_staff_data(self, staff_id_value):
+        try:
+            db = self.context.db_manager
+            sql = """SELECT staff_name, staff_id, staff_position,
+                            staff_phone, staff_email, staff_salary, hire_date FROM staff WHERE staff_id = %s"""
+            db.execute(sql, (staff_id_value,))
+            result = db.fetchone()
+            # print(f"Query result: {result}")
+
+            # Đổi lại các trường
+            self.staff_id.setText(str(result[1]))
+            self.staff_name.setText(result[0] if result[0] else "")
+            self.staff_position.setText(result[2] if result[2] else "")
+            self.staff_phone.setText(result[3] if result[3] else "")
+            self.staff_email.setText(result[4] if result[4] else "")
+            self.staff_salary.setText(str(result[5]) if result[5] else "")
+            self.hire_date.setText(str(result[6]) if result[6] else "")
+            self.hire_date.setReadOnly(True)
+            self.staff_email.setText(result[4] if result[4] else "")
+            self.staff_email.setReadOnly(True)
+            self.staff_salary.setText(str(result[5]) if result[5] else "")
+            self.staff_salary.setReadOnly(True)
+            self.hire_date.setText(str(result[6]) if result[6] else "")
+            self.hire_date.setReadOnly(True)
+        except Exception as e:
+            print("Lỗi khi tải dữ liệu:", e)
 
 # Medicine Window
 class Medicine_w(QMainWindow):

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>949</width>
+    <width>942</width>
     <height>600</height>
    </rect>
   </property>
@@ -29,18 +29,31 @@
      </spacer>
     </item>
     <item row="0" column="2">
+     <spacer name="horizontalSpacer_6">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>28</width>
+        <height>536</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="0" column="1">
      <widget class="QGroupBox" name="invoice_daily">
       <property name="title">
-       <string>DANH SÁCH SUPPLIER</string>
+       <string>DANH SÁCH NHÂN VIÊN</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="1" column="2">
-        <widget class="QLabel" name="label">
+       <item row="1" column="4">
+        <widget class="QLineEdit" name="lineEdit">
          <property name="enabled">
           <bool>false</bool>
          </property>
-         <property name="text">
-          <string>🔍</string>
+         <property name="placeholderText">
+          <string>search</string>
          </property>
         </widget>
        </item>
@@ -58,12 +71,12 @@
         </spacer>
        </item>
        <item row="1" column="3">
-        <widget class="QLineEdit" name="lineEdit">
+        <widget class="QLabel" name="label">
          <property name="enabled">
           <bool>false</bool>
          </property>
-         <property name="placeholderText">
-          <string>search</string>
+         <property name="text">
+          <string>🔍</string>
          </property>
         </widget>
        </item>
@@ -74,7 +87,7 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="0" colspan="4">
+       <item row="2" column="0" colspan="5">
         <widget class="QTableWidget" name="tableWidget">
          <property name="rowCount">
           <number>0</number>
@@ -97,6 +110,11 @@
          </column>
          <column>
           <property name="text">
+           <string>Position</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
            <string>Created Time</string>
           </property>
          </column>
@@ -112,7 +130,7 @@
          </column>
         </widget>
        </item>
-       <item row="5" column="0">
+       <item row="3" column="0">
         <widget class="QPushButton" name="invoice_detail">
          <property name="enabled">
           <bool>false</bool>
@@ -140,19 +158,6 @@
       </layout>
      </widget>
     </item>
-    <item row="0" column="3">
-     <spacer name="horizontalSpacer_6">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>28</width>
-        <height>536</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -160,7 +165,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>949</width>
+     <width>942</width>
      <height>22</height>
     </rect>
    </property>
