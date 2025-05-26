@@ -3,39 +3,18 @@ from PyQt6.QtWidgets import *
 from PyQt6.uic import loadUi
 from PyQt6.QtGui import QIcon, QFont, QBrush, QColor
 from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QLabel
+from PyQt6.QtCore import QTimer
+from datetime import datetime
+from DBManager import DBManager
 import sys
 import MySQLdb as mysql_db
-from DBManager import DBManager
 import os
 import darkdetect
+import bcrypt 
 
-# Path management
-current_dir = os.path.dirname(os.path.abspath(__file__))  
 
-def iconset():
-    icon_dir = os.path.join(current_dir, "icon")
-    if darkdetect.isDark():
-        icon_path = os.path.join(icon_dir, "app_icon_dark.png")
-    else:
-        icon_path = os.path.join(icon_dir, "app_icon_light.png")
-    return icon_path
-
-icon_path = iconset()
-
-def load_data_into_table(table_widget, sql_query, column_names, cursor):
-    cursor.execute(sql_query)
-    rows = cursor.fetchall()
-
-    table_widget.setRowCount(len(rows))
-    table_widget.setColumnCount(len(column_names))
-    table_widget.setHorizontalHeaderLabels(column_names)
-
-    for row_idx, row_data in enumerate(rows):
-        for col_idx, value in enumerate(row_data):
-            item = QTableWidgetItem(str(value))
-            table_widget.setItem(row_idx, col_idx, item)
-
-# Connect to DataBase
+# Connect to DataBase - Done
 class AppContext:
     def __init__(self):
         self.db_manager = DBManager()
@@ -57,6 +36,21 @@ class Main_w(QMainWindow):
         self.setWindowIcon(QtGui.QIcon(icon_path))
         self.staff_id = staff_id
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        # Create QLabel to show login info in the status bar
+        self.status_label = QLabel()
+        self.status_label.setStyleSheet("color: gray; font-size: 11px;")
+        self.statusBar().addPermanentWidget(self.status_label)
+
+        # Setup QTimer to update time every 60 seconds
+        self.status_timer = QTimer(self)
+        self.status_timer.timeout.connect(self.update_status_info)
+        self.status_timer.start(1000)  # update every 60s
+
+        # Call once immediately
+        self.update_status_info()
+   # Gọi ngay lần đầu
+
+
 
         # Connect action for each menu
         self.actionSupplier.triggered.connect(self.goto_supplier)
@@ -65,6 +59,7 @@ class Main_w(QMainWindow):
         self.actionCustomer.triggered.connect(self.goto_customer)
         self.actionStaff.triggered.connect(self.goto_staff)
         self.actionLog_out.triggered.connect(self.goto_login)
+        
 
     def closeEvent(self, event):
         QApplication.quit()
@@ -104,7 +99,17 @@ class Main_w(QMainWindow):
         self.invoice_window.show()
         self.hide()
 
-# Supplier Window
+    def goto_logs(self):
+        self.log_window = Log_w(self.context)
+        self.log_window.show()
+        self.hide()
+    def update_status_info(self):
+        now = datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
+        status = f"👤 {self.staff_id}   | 🕒 {now}   | ✅ Database Connected"
+        self.status_label.setText(status)
+
+
+# Supplier Window - Done
 class Supplier_w(QMainWindow):
     def __init__(self, context):
         super(Supplier_w, self).__init__()
@@ -194,7 +199,6 @@ class Supplier_w(QMainWindow):
         self.main_window = Main_w(self.context)
         self.main_window.show()
         self.hide()
-
 class SupplierInformation_w(QDialog):
     def __init__(self, context, supplier_id):
         super(SupplierInformation_w, self).__init__()
@@ -257,13 +261,18 @@ class Customer_w(QMainWindow):
 
     def save_customer_data(self):
         customer_name = self.lineEdit_Customer_Name.text()
-        contact_person = self.lineEdit_Contact_Person.text()
-        phone_number = self.lineEdit_Phone_Number.text()
-        address = self.textEdit_Address.toPlainText()
+        customer_phone = self.lineEdit_Phone_Number.text()
+        customer_email = self.lineEdit_Contact_Person.text()
 
-        sql_query = f"INSERT INTO customers (name, contact_person, phone_number, address) VALUES ('{customer_name}', '{contact_person}', '{phone_number}', '{address}')"
-        self.context.cursor.execute(sql_query)
-        self.context.connection.commit()
+        sql_query = """
+            INSERT INTO customer (customer_name, customer_phone, customer_email)
+            VALUES (%s, %s, %s)
+        """
+        self.context.db_manager.execute(sql_query, (customer_name, customer_phone, customer_email))
+        self.context.db_manager.commit()
+
+        QMessageBox.information(self, "Thông báo", "Dữ liệu khách hàng đã được lưu thành công!")
+
 
     def goto_staff(self):
         self.staff_window = Staff_w(self.context)
@@ -271,7 +280,7 @@ class Customer_w(QMainWindow):
         self.hide()
 
 
-# Staff Window
+# Staff Window - Done
 class Staff_w(QMainWindow):
     def __init__(self, context):
         super(Staff_w, self).__init__()
@@ -360,7 +369,6 @@ class Staff_w(QMainWindow):
         self.main_window = Main_w(self.context)
         self.main_window.show()
         self.hide()
-
 class StaffInformation_w(QDialog):
     def __init__(self, context, staff_id):
         super(StaffInformation_w, self).__init__()
@@ -421,17 +429,51 @@ class Medicine_w(QMainWindow):
     def save_medicine_data(self):
         medicine_name = self.lineEdit_Medicine_Name.text()
         supplier_id = int(self.comboBox_Supplier_ID.currentText())
-        quantity = int(self.spinBox_Quantity.value())
+        stock_quantity = int(self.spinBox_Quantity.value())
 
-        sql_query = f"INSERT INTO medicines (name, supplier_id, quantity) VALUES ('{medicine_name}', {supplier_id}, {quantity})"
-        self.context.cursor.execute(sql_query)
-        self.context.connection.commit()
+        # Các trường khác nếu có thể bổ sung như generic_name, brand_name, unit_price...
+        sql_query = """
+            INSERT INTO medicine (medicine_name, supplier_id, stock_quantity)
+            VALUES (%s, %s, %s)
+        """
+        self.context.db_manager.execute(sql_query, (medicine_name, supplier_id, stock_quantity))
+        self.context.db_manager.commit()
 
     def goto_staff(self):
         self.staff_window = Staff_w(self.context)
         self.staff_window.show()
         self.hide()
+class MedicineInformation_w(QDialog):
+    def __init__(self, context):
+        super(MedicineInformation_w, self).__init__()
+        self.context = context
+        ui_path = os.path.join(current_dir, 'ui', 'medicine_information.ui')
+        print(">>> medicine_information.ui path:", ui_path)
+        if not os.path.exists(ui_path):
+            raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
+        uic.loadUi(ui_path, self)
+        self.setWindowTitle("Medicine Information")
+        self.setWindowIcon(QtGui.QIcon(icon_path))
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        # self.actionSave.triggered.connect(self.save_medicine_information)
+        # self.actionAdd.triggered.connect(self.add_medicine_information)
+        # self.actionDelete.triggered.connect(self.delete_medicine_information)
+        # self.actionUpdate.triggered.connect(self.update_medicine_information)
+        # self.actionSearch.triggered.connect(self.search_medicine_information)
+        # self.actionPrint.triggered.connect(self.print_medicine_information)
+        # self.actionExit.triggered.connect(self.close)
+        # self.actionBack.triggered.connect(self.goto_medicine)
+        # self.actionNext.triggered.connect(self.goto_stock)
+        # self.actionPrevious.triggered.connect(self.goto_staff)
+        # self.actionFirst.triggered.connect(self.goto_invoice)
+        # self.actionLast.triggered.connect(self.goto_supplier)
+        # self.actionHelp.triggered.connect(self.show_help)
+        # self.actionAbout.triggered.connect(self.show_about)
+        # self.actionLogout.triggered.connect(self.logout)
+        # self.actionExit.triggered.connect(self.close)
+        # self.actionBack.triggered.connect(self.goto_medicine)
 
+class MedicineInformationAdd_w(QDialog):
 
 # Stock Window
 class Stock_w(QMainWindow):
@@ -461,7 +503,6 @@ class Stock_w(QMainWindow):
         self.medicine_window = Medicine_w(self.context)
         self.medicine_window.show()
         self.hide()
-
 
 # Invoice Window
 class Invoice_w(QMainWindow):
@@ -493,8 +534,9 @@ class Invoice_w(QMainWindow):
         self.customer_window.show()
         self.hide()
 
+# Logs Window
 
-# Login Window
+# Login Window - Done
 class Login_w(QDialog):
     def __init__(self, context):
         super(Login_w, self).__init__()
@@ -512,24 +554,83 @@ class Login_w(QDialog):
         self.login_button.clicked.connect(self.login)
         self.login_button.setDefault(True)
 
+        # Ẩn mật khẩu mặc định
+        self.login_password.setEchoMode(QLineEdit.EchoMode.Password)
+
+        # Tạo nút 👁
+        self.toggle_pw_button = QToolButton(self.login_password)
+        self.toggle_pw_button.setIcon(QIcon("icon/eye_closed.png"))  # đặt icon của bạn
+        self.toggle_pw_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.toggle_pw_button.setStyleSheet("border: none; padding: 0px;")
+        self.toggle_pw_button.setFixedSize(20, 20)
+        self.toggle_pw_button.move(self.login_password.rect().right() - 24, 0)
+
+        # Gắn click
+        self.toggle_pw_button.clicked.connect(self.show_password_temporarily)
+
+        # Tạo QTimer để ẩn sau 1 giây
+        self.hide_pw_timer = QTimer(self)
+        self.hide_pw_timer.setSingleShot(True)
+        self.hide_pw_timer.timeout.connect(self.hide_password)
+
     def login(self):
         un = self.login_user.text()
         psw = self.login_password.text()
         try:
             db = self.context.db_manager
-            sql = 'SELECT staff_id, staff_psw FROM staff WHERE staff_id = %s AND staff_psw = %s'
-            db.execute(sql, (un, psw))
+            sql = 'SELECT staff_id, staff_psw FROM staff WHERE staff_id = %s'
+            db.execute(sql, (un,))
             result = db.fetchone()
 
             if result:
-                QMessageBox.information(self, "Login Success", "Đăng nhập thành công!")
-                self.main_window = Main_w(self.context, un)
-                self.main_window.show()
-                self.close()
-            else:
-                QMessageBox.warning(self, "Login Failed", "Sai tài khoản hoặc mật khẩu.")
+                stored_pw = result[1]
+
+                try:
+                    # Nếu là bcrypt → kiểm tra bằng checkpw
+                    if bcrypt.checkpw(psw.encode('utf-8'), stored_pw.encode('utf-8')):
+                        login_success = True
+                    else:
+                        login_success = False
+                except ValueError:
+                    # Nếu không phải bcrypt → so sánh trực tiếp
+                    if psw == stored_pw:
+                        login_success = True
+
+                        # Tự động mã hóa lại mật khẩu cũ
+                        new_hash = bcrypt.hashpw(psw.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                        db.execute("UPDATE staff SET staff_psw = %s WHERE staff_id = %s", (new_hash, un))
+                        db.commit()
+                        print("Đã tự động mã hóa lại mật khẩu cũ cho user:", un)
+                    else:
+                        login_success = False
+
+                if login_success:
+                    QMessageBox.information(self, "Login Success", "Đăng nhập thành công!")
+                    self.context.staff_id = result[0]
+                    self.main_window = Main_w(self.context, un)
+                    self.main_window.show()
+                    self.close()
+                else:
+                    QMessageBox.warning(self, "Login Failed", "Sai tài khoản hoặc mật khẩu.")
         except mysql_db.Error as e:
             QMessageBox.critical(self, "Database Error", f"Lỗi kết nối CSDL: {str(e)}")
+
+    def show_password_temporarily(self):
+        self.login_password.setEchoMode(QLineEdit.EchoMode.Normal)
+        icon_path = os.path.join(current_dir, "icon", "eye_open.png")
+        self.toggle_pw_button.setIcon(QIcon(icon_path))
+
+        # Start timer 1 giây để ẩn lại
+        self.hide_pw_timer.start(1000)
+
+    def hide_password(self):
+        self.login_password.setEchoMode(QLineEdit.EchoMode.Password)
+        icon_path = os.path.join(current_dir, "icon", "eye_closed.png")
+        self.toggle_pw_button.setIcon(QIcon(icon_path))
+
+
+
+
 
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
@@ -540,7 +641,7 @@ class Login_w(QDialog):
         self.register_window.show()
         self.close()
 
-# Register Window
+# Register Window - Done
 class Register_w(QDialog):
     def __init__(self, context):
         super(Register_w, self).__init__()   
@@ -610,6 +711,10 @@ class Register_w(QDialog):
 
 # Program starts here
 if __name__ == '__main__':
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    icon_dir = os.path.join(current_dir, "icon")
+    icon_file = "app_icon_dark.png" if darkdetect.isDark() else "app_icon_light.png"
+    icon_path = os.path.join(icon_dir, icon_file)
     context = AppContext()
     app = QApplication(sys.argv)
     login_window = Login_w(context)

@@ -1,94 +1,137 @@
 from PyQt6 import QtCore, QtWidgets, QtGui, uic
-from PyQt6.QtWidgets import *
-from PyQt6.uic import loadUi
-from PyQt6.QtGui import QIcon, QFont, QBrush, QColor
+from PyQt6.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QDialog
+from PyQt6.QtGui import QIcon, QFont
 from PyQt6.QtCore import Qt
 import sys
-import MySQLdb as mysql_db
-from DBManager import DBManager
 import os
 import darkdetect
+from DBManager import DBManager
 
-# Path management
-current_dir = os.path.dirname(os.path.abspath(__file__))  
 
-def iconset():
-    icon_dir = os.path.join(current_dir, "icon")
-    if darkdetect.isDark():
-        icon_path = os.path.join(icon_dir, "app_icon_dark.png")
-    else:
-        icon_path = os.path.join(icon_dir, "app_icon_light.png")
-    return icon_path
-
-icon_path = iconset()
-
-# Connect to DataBase
 class AppContext:
+    """Manages database connection for the application."""
     def __init__(self):
         self.db_manager = DBManager()
         self.connection = self.db_manager.connect()
+
     def __del__(self):
         self.db_manager.close()
 
 
-# Medicine Window
-class Medicine_w(QMainWindow):
-    def __init__(self, context):
-        super(Medicine_w, self).__init__()
+class MedicineInformation_w(QDialog):
+    """Dialog window to display detailed information about a medicine."""
+    def __init__(self, context, medicine_id):
+        super(MedicineInformation_w, self).__init__()
         self.context = context
-        ui_path = os.path.join(current_dir, 'ui', 'medicine.ui')
-        print(">>> medicine.ui path:", ui_path)
+        self.medicine_id_value = medicine_id
+
+        # Load UI
+        ui_path = os.path.join(current_dir, 'ui', 'medicine_information.ui')
+        print(f">>> medicine_information.ui path: {ui_path}")
         if not os.path.exists(ui_path):
             raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
         uic.loadUi(ui_path, self)
+
+        # Set window properties
+        self.setWindowTitle("Medicine Information")
+        self.setWindowIcon(QIcon(icon_path))
+
+        # Load data
+        self.load_medicine_data(self.medicine_id_value)
+        
+    def load_medicine_data(self, medicine_id_value):
+        """Load and display medicine data from database."""
+        try:
+            db = self.context.db_manager
+            sql = """SELECT medicine_name, category_id,batch_number, stock_quantity, created_at, updated_at
+                    FROM medicine WHERE medicine_id = %s"""
+            db.execute(sql, (medicine_id_value,))
+            result = db.fetchone()
+
+            if result:
+                self.medicine_name.setText(result[0] if result[0] else "")
+                self.medicine_category.setText(result[1] if result[1] else "")
+                self.created_at.setText(str(result[2]) if result[2] else "")
+                self.updated_at.setText(str(result[3]) if result[3] else "")
+            else:
+                print(f"No data found for medicine ID: {medicine_id_value}")
+
+        except Exception as e:
+            print(f"Lỗi khi tải dữ liệu thuốc: {e}")
+
+
+class Medicine_w(QMainWindow):
+    """Main window for medicine management."""
+    def __init__(self, context):
+        super(Medicine_w, self).__init__()
+        self.context = context
+
+        # Load UI
+        ui_path = os.path.join(current_dir, 'ui', 'medicine.ui')
+        print(f">>> medicine.ui path: {ui_path}")
+        if not os.path.exists(ui_path):
+            raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
+        uic.loadUi(ui_path, self)
+
+        # Set window properties
         self.setWindowTitle("Medicine Management")
-        self.setWindowIcon(QtGui.QIcon(icon_path))
+        self.setWindowIcon(QIcon(icon_path))
+
+        # Connect signals
+        self.tableWidget.cellClicked.connect(self.handle_cell_click)
+
+        # Load initial data
         self.load_medicine_data()
 
     def load_medicine_data(self):
+        """Load and display medicine data in the table."""
         try:
             db = self.context.db_manager
-            sql= """SELECT medicine_id, medicine_name, medicine_category, created_at, updated_at FROM medicine"""
+            sql = """SELECT medicine_id, medicine_name, medicine_category, created_at, updated_at
+                    FROM medicine"""
             db.execute(sql)
             results = db.fetchall()
 
-            # Cập nhật TableWidget
+            if not results:
+                print("No medicine data found")
+                return
+
+            # Setup table
             self.tableWidget.setRowCount(len(results))
-            self.tableWidget.setColumnCount(len(db.execute(sql).description)+1)
-            # self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
-            self.tableWidget.setColumnWidth(0, 50)  
-            self.tableWidget.setColumnWidth(1, 200)  
-            self.tableWidget.setColumnWidth(2, 100) 
-            self.tableWidget.setColumnWidth(3, 150) 
-            self.tableWidget.setColumnWidth(4, 150) 
-            self.tableWidget.setColumnWidth(5, 200) 
-            self.tableWidget.cellClicked.connect(self.handle_cell_click)
+            column_count = len(db.description) + 1  # +1 for "View Details" column
+            self.tableWidget.setColumnCount(column_count)
 
-            column_count = self.tableWidget.columnCount()
+            # Set column widths
+            self.tableWidget.setColumnWidth(0, 50)   # ID
+            self.tableWidget.setColumnWidth(1, 200)  # Name
+            self.tableWidget.setColumnWidth(2, 100)  # Category
+            self.tableWidget.setColumnWidth(3, 150)  # Created at
+            self.tableWidget.setColumnWidth(4, 150)  # Updated at
+            self.tableWidget.setColumnWidth(5, 200)  # View Details
 
+            # Populate table
             for row_idx, row_data in enumerate(results):
-                medicine_id = row_data[0]  # Giữ lại để dùng UserRole
+                medicine_id = row_data[0]
 
                 for col_idx in range(column_count):
                     if col_idx < len(row_data):
+                        # Regular data columns
                         value = row_data[col_idx]
                         item = QTableWidgetItem(str(value))
 
-                        # Medicine Name (hiển thị với underline)
+                        # Style medicine name and category
                         if col_idx == 1 or col_idx == 2:
                             font = QFont()
                             item.setFont(font)
                             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                             item.setToolTip("Click để xem chi tiết thuốc")
                             item.setData(Qt.ItemDataRole.UserRole, medicine_id)
-
                         elif col_idx == 0:
                             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
                         self.tableWidget.setItem(row_idx, col_idx, item)
-
                     else:
-                        # Cột "View Details"
+                        # "View Details" column
                         detail_item = QTableWidgetItem("View Details")
                         font = QFont()
                         font.setUnderline(True)
@@ -97,90 +140,41 @@ class Medicine_w(QMainWindow):
                         detail_item.setData(Qt.ItemDataRole.UserRole, medicine_id)
                         detail_item.setToolTip("Click để xem chi tiết thuốc")
                         self.tableWidget.setItem(row_idx, col_idx, detail_item)
+
         except Exception as e:
-            print("Lỗi khi tải dữ liệu:", e)
-    
-    def show_medicine_detail(self, medicine_id):
-        detail_dialog = MedicineInformation_w(self.context, medicine_id)
-        detail_dialog.exec()
-    
-    def handle_cell_click(self, row, column):
-        if column == 1 or column == 5:
-            item = self.tableWidget.item(row, column)
-            if item is None:
-                print("Item not found")
-                return
-            medicine_id = item.data(Qt.ItemDataRole.UserRole)
-            if medicine_id:
-                print(f"Opening details for medicine ID: {medicine_id}")
-                self.show_medicine_detail(medicine_id)
-    
-
+            print(f"Lỗi khi tải dữ liệu thuốc: {e}")
 
     def show_medicine_detail(self, medicine_id):
+        """Open medicine detail dialog."""
         detail_dialog = MedicineInformation_w(self.context, medicine_id)
         detail_dialog.exec()
-    
+
     def handle_cell_click(self, row, column):
+        """Handle click events on table cells."""
+        # Open details when clicking on name or "View Details" column
         if column == 1 or column == 5:
             item = self.tableWidget.item(row, column)
             if item is None:
                 print("Item not found")
                 return
 
-
-
-
             medicine_id = item.data(Qt.ItemDataRole.UserRole)
             if medicine_id:
                 print(f"Opening details for medicine ID: {medicine_id}")
                 self.show_medicine_detail(medicine_id)
-
-    # def goto_staff(self):
-    #     self.staff_window = Staff_w(self.context)
-    #     self.staff_window.show()
-    #     self.hide()
-
-    # def goto_customer(self):
-    #     self.customer_window = Customer_w(self.context)
-    #     self.customer_window.show()
-    #     self.hide()
-
-    def __init__(self, context, medicine_id):
-        super(MedicineInformation_w, self).__init__()
-        self.context = context
-        self.medicine_id_value = medicine_id
-        ui_path = os.path.join(current_dir, 'ui', 'medicine_information.ui')
-        print(">>> medicine_information.ui' path:", ui_path)
-        if not os.path.exists(ui_path):
-            raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
-        uic.loadUi(ui_path, self)
-        self.setWindowTitle("Medicine Information")
-        self.setWindowIcon(QtGui.QIcon(icon_path))
-        self.load_medicine_data(self.medicine_id_value)
-        
-
-    def load_medicine_data(self, medicine_id_value):
-        try:
-            db = self.context.db_manager
-            sql = """SELECT medicine_name, medicine_category, created_at, updated_at FROM medicine WHERE medicine_id = %s"""
-            db.execute(sql, (medicine_id_value,))
-            result = db.fetchone()
-            # print(f"Query result: {result}")
-
-            # Đổi lại các trường
-            self.medicine_name.setText(result[0] if result[0] else "")
-            self.medicine_category.setText(result[1] if result[1] else "")
-            self.created_at.setText(str(result[2]) if result[2] else "")
-            self.updated_at.setText(str(result[3]) if result[3] else "")
-        except Exception as e:
-            print("Lỗi khi tải dữ liệu:", e)
-
-
-
+# Program entry point
 if __name__ == '__main__':
+    # Set up paths
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    icon_dir = os.path.join(current_dir, "icon")
+    icon_file = "app_icon_dark.png" if darkdetect.isDark() else "app_icon_light.png"
+    icon_path = os.path.join(icon_dir, icon_file)
+
+    # Initialize application
     context = AppContext()
     app = QApplication(sys.argv)
-    main_window = Medicine_w(context)
-    main_window.show()
+    medicine_window = Medicine_w(context)
+    medicine_window.show()
+
+    # Run application
     sys.exit(app.exec())

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>963</width>
+    <width>1003</width>
     <height>672</height>
    </rect>
   </property>
@@ -15,67 +15,6 @@
     <enum>Qt::LeftToRight</enum>
    </property>
    <layout class="QGridLayout" name="gridLayout_3">
-    <item row="0" column="1" colspan="4">
-     <widget class="QGroupBox" name="invoice_daily">
-      <property name="title">
-       <string>DANH SÁCH HÓA ĐƠN TRONG NGÀY</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="1" column="0">
-        <widget class="QPushButton" name="invoice_detail">
-         <property name="text">
-          <string>CHI TIẾT</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QTableWidget" name="tableWidget">
-         <property name="rowCount">
-          <number>0</number>
-         </property>
-         <attribute name="horizontalHeaderCascadingSectionResizes">
-          <bool>true</bool>
-         </attribute>
-         <column>
-          <property name="text">
-           <string>Invoice ID</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Time</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Customer</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Total Amount</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Staff</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Notes</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Details</string>
-          </property>
-         </column>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
     <item row="1" column="1" rowspan="2" colspan="4">
      <widget class="QGroupBox" name="groupBox">
       <property name="enabled">
@@ -253,26 +192,6 @@
       </layout>
      </widget>
     </item>
-    <item row="3" column="2">
-     <widget class="QPushButton" name="export_report">
-      <property name="text">
-       <string>IN BÁO CÁO NGÀY</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="3">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>685</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
     <item row="3" column="4">
      <widget class="QPushButton" name="invoice_create">
       <property name="enabled">
@@ -289,18 +208,79 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="1" colspan="4">
-     <spacer name="horizontalSpacer_3">
+    <item row="3" column="3">
+     <spacer name="horizontalSpacer">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>679</width>
+        <width>685</width>
         <height>20</height>
        </size>
       </property>
      </spacer>
+    </item>
+    <item row="0" column="1" colspan="4">
+     <widget class="QGroupBox" name="invoice_daily">
+      <property name="title">
+       <string>DANH SÁCH HÓA ĐƠN TRONG NGÀY</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="1" column="0">
+        <widget class="QPushButton" name="invoice_detail">
+         <property name="text">
+          <string>CHI TIẾT</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QTableWidget" name="tableWidget">
+         <property name="rowCount">
+          <number>0</number>
+         </property>
+         <attribute name="horizontalHeaderCascadingSectionResizes">
+          <bool>true</bool>
+         </attribute>
+         <column>
+          <property name="text">
+           <string>Invoice ID</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Time</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Customer</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Total Amount</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Staff</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Notes</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Details</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </item>
     <item row="0" column="5" rowspan="4">
      <spacer name="horizontalSpacer_6">
@@ -328,6 +308,26 @@
       </property>
      </spacer>
     </item>
+    <item row="3" column="1" colspan="2">
+     <widget class="QPushButton" name="export_report">
+      <property name="text">
+       <string>IN BÁO CÁO NGÀY</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1" colspan="4">
+     <spacer name="horizontalSpacer_3">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>679</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -336,7 +336,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>963</width>
+     <width>1003</width>
      <height>22</height>
     </rect>
    </property>
@@ -356,6 +356,7 @@
     <addaction name="actionStaff"/>
     <addaction name="actionStock"/>
     <addaction name="actionSupplier"/>
+    <addaction name="actionLog"/>
     <addaction name="actionLog_out"/>
    </widget>
    <addaction name="menuGeneral_Management"/>
@@ -394,6 +395,11 @@
   <action name="actionLog_out">
    <property name="text">
     <string>⮌ Log out</string>
+   </property>
+  </action>
+  <action name="actionLog">
+   <property name="text">
+    <string>Log</string>
    </property>
   </action>
  </widget>
