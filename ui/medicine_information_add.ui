@@ -34,7 +34,7 @@
     <rect>
      <x>20</x>
      <y>320</y>
-     <width>47</width>
+     <width>61</width>
      <height>21</height>
     </rect>
    </property>
@@ -108,7 +108,7 @@
     <rect>
      <x>20</x>
      <y>380</y>
-     <width>47</width>
+     <width>61</width>
      <height>21</height>
     </rect>
    </property>
@@ -134,7 +134,7 @@
     <rect>
      <x>20</x>
      <y>440</y>
-     <width>47</width>
+     <width>61</width>
      <height>21</height>
     </rect>
    </property>
@@ -147,7 +147,7 @@
     <rect>
      <x>20</x>
      <y>410</y>
-     <width>47</width>
+     <width>61</width>
      <height>21</height>
     </rect>
    </property>
@@ -158,9 +158,9 @@
   <widget class="QLineEdit" name="medicine_name">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>100</x>
      <y>320</y>
-     <width>241</width>
+     <width>221</width>
      <height>20</height>
     </rect>
    </property>
@@ -168,9 +168,9 @@
   <widget class="QLineEdit" name="batch_number">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>100</x>
      <y>440</y>
-     <width>241</width>
+     <width>221</width>
      <height>20</height>
     </rect>
    </property>
@@ -178,9 +178,9 @@
   <widget class="QLineEdit" name="generic_name">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>100</x>
      <y>350</y>
-     <width>241</width>
+     <width>221</width>
      <height>20</height>
     </rect>
    </property>
@@ -203,7 +203,7 @@
     <rect>
      <x>20</x>
      <y>530</y>
-     <width>47</width>
+     <width>61</width>
      <height>21</height>
     </rect>
    </property>
@@ -262,9 +262,9 @@
   <widget class="QComboBox" name="comboBox">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>100</x>
      <y>380</y>
-     <width>241</width>
+     <width>221</width>
      <height>22</height>
     </rect>
    </property>
@@ -272,9 +272,9 @@
   <widget class="QComboBox" name="comboBox_2">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>100</x>
      <y>410</y>
-     <width>241</width>
+     <width>221</width>
      <height>22</height>
     </rect>
    </property>
@@ -282,9 +282,9 @@
   <widget class="QDateEdit" name="dateEdit">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>100</x>
      <y>470</y>
-     <width>241</width>
+     <width>221</width>
      <height>22</height>
     </rect>
    </property>
@@ -292,9 +292,9 @@
   <widget class="QSpinBox" name="spinBox">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>100</x>
      <y>500</y>
-     <width>241</width>
+     <width>221</width>
      <height>22</height>
     </rect>
    </property>
@@ -302,9 +302,9 @@
   <widget class="QDoubleSpinBox" name="doubleSpinBox">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>100</x>
      <y>530</y>
-     <width>241</width>
+     <width>221</width>
      <height>22</height>
     </rect>
    </property>
@@ -312,9 +312,9 @@
   <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>100</x>
      <y>560</y>
-     <width>241</width>
+     <width>221</width>
      <height>22</height>
     </rect>
    </property>

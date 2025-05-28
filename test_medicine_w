@@ -1,5 +1,5 @@
 from PyQt6 import QtCore, QtWidgets, QtGui, uic
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QDialog
+from PyQt6.QtWidgets import *
 from PyQt6.QtGui import QIcon, QFont
 from PyQt6.QtCore import Qt
 import sys
@@ -18,46 +18,7 @@ class AppContext:
         self.db_manager.close()
 
 
-class MedicineInformation_w(QDialog):
-    """Dialog window to display detailed information about a medicine."""
-    def __init__(self, context, medicine_id):
-        super(MedicineInformation_w, self).__init__()
-        self.context = context
-        self.medicine_id_value = medicine_id
 
-        # Load UI
-        ui_path = os.path.join(current_dir, 'ui', 'medicine_information.ui')
-        print(f">>> medicine_information.ui path: {ui_path}")
-        if not os.path.exists(ui_path):
-            raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
-        uic.loadUi(ui_path, self)
-
-        # Set window properties
-        self.setWindowTitle("Medicine Information")
-        self.setWindowIcon(QIcon(icon_path))
-
-        # Load data
-        self.load_medicine_data(self.medicine_id_value)
-        
-    def load_medicine_data(self, medicine_id_value):
-        """Load and display medicine data from database."""
-        try:
-            db = self.context.db_manager
-            sql = """SELECT medicine_name, category_id,batch_number, stock_quantity, created_at, updated_at
-                    FROM medicine WHERE medicine_id = %s"""
-            db.execute(sql, (medicine_id_value,))
-            result = db.fetchone()
-
-            if result:
-                self.medicine_name.setText(result[0] if result[0] else "")
-                self.medicine_category.setText(result[1] if result[1] else "")
-                self.created_at.setText(str(result[2]) if result[2] else "")
-                self.updated_at.setText(str(result[3]) if result[3] else "")
-            else:
-                print(f"No data found for medicine ID: {medicine_id_value}")
-
-        except Exception as e:
-            print(f"Lỗi khi tải dữ liệu thuốc: {e}")
 
 
 class Medicine_w(QMainWindow):
@@ -79,6 +40,8 @@ class Medicine_w(QMainWindow):
 
         # Connect signals
         self.tableWidget.cellClicked.connect(self.handle_cell_click)
+        self.tableWidget.setSortingEnabled(True)
+        self.search_input.textChanged.connect(self.search_supplier)
 
         # Load initial data
         self.load_medicine_data()
@@ -86,11 +49,13 @@ class Medicine_w(QMainWindow):
     def load_medicine_data(self):
         """Load and display medicine data in the table."""
         try:
-            db = self.context.db_manager
-            sql = """SELECT medicine_id, medicine_name, medicine_category, created_at, updated_at
-                    FROM medicine"""
-            db.execute(sql)
-            results = db.fetchall()
+            sql = """
+                SELECT m.medicine_id, m.medicine_name, c.category_name, m.created_at, m.updated_at
+                FROM medicine m
+                JOIN category c ON m.category_id = c.category_id
+            """
+            cursor = self.context.db_manager.execute(sql)
+            results = cursor.fetchall()
 
             if not results:
                 print("No medicine data found")
@@ -98,16 +63,20 @@ class Medicine_w(QMainWindow):
 
             # Setup table
             self.tableWidget.setRowCount(len(results))
-            column_count = len(db.description) + 1  # +1 for "View Details" column
+            column_count = len(cursor.description) + 1  # +1 for "View Details" column
             self.tableWidget.setColumnCount(column_count)
 
+            self.tableWidget.setHorizontalHeaderLabels([
+                "ID", "Name", "Category", "Created At", "Updated At", "Details"
+            ])
+
             # Set column widths
-            self.tableWidget.setColumnWidth(0, 50)   # ID
-            self.tableWidget.setColumnWidth(1, 200)  # Name
-            self.tableWidget.setColumnWidth(2, 100)  # Category
-            self.tableWidget.setColumnWidth(3, 150)  # Created at
-            self.tableWidget.setColumnWidth(4, 150)  # Updated at
-            self.tableWidget.setColumnWidth(5, 200)  # View Details
+            self.tableWidget.setColumnWidth(0, 50)
+            self.tableWidget.setColumnWidth(1, 200)
+            self.tableWidget.setColumnWidth(2, 150)
+            self.tableWidget.setColumnWidth(3, 150)
+            self.tableWidget.setColumnWidth(4, 150)
+            self.tableWidget.setColumnWidth(5, 150)
 
             # Populate table
             for row_idx, row_data in enumerate(results):
@@ -115,19 +84,20 @@ class Medicine_w(QMainWindow):
 
                 for col_idx in range(column_count):
                     if col_idx < len(row_data):
-                        # Regular data columns
                         value = row_data[col_idx]
-                        item = QTableWidgetItem(str(value))
+                        item = QTableWidgetItem()
 
-                        # Style medicine name and category
-                        if col_idx == 1 or col_idx == 2:
-                            font = QFont()
-                            item.setFont(font)
+                        if col_idx == 0:
+                            item.setData(Qt.ItemDataRole.DisplayRole, int(value))
                             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                            item.setToolTip("Click để xem chi tiết thuốc")
-                            item.setData(Qt.ItemDataRole.UserRole, medicine_id)
-                        elif col_idx == 0:
-                            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                        else:
+                            item.setText(str(value))
+                            if col_idx in [1, 2]:  # Name, Category
+                                font = QFont()
+                                item.setFont(font)
+                                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                                item.setToolTip("Click để xem chi tiết thuốc")
+                                item.setData(Qt.ItemDataRole.UserRole, medicine_id)
 
                         self.tableWidget.setItem(row_idx, col_idx, item)
                     else:
@@ -141,8 +111,21 @@ class Medicine_w(QMainWindow):
                         detail_item.setToolTip("Click để xem chi tiết thuốc")
                         self.tableWidget.setItem(row_idx, col_idx, detail_item)
 
+            # ✅ Enable sorting after all data is loaded
+            self.tableWidget.setSortingEnabled(True)
+
         except Exception as e:
             print(f"Lỗi khi tải dữ liệu thuốc: {e}")
+    def search_supplier(self):
+        keyword = self.search_input.text().strip().lower()
+
+        for row in range(self.tableWidget.rowCount()):
+            name_item = self.tableWidget.item(row, 1)  # Cột tên nhà cung cấp
+            if name_item:
+                name_text = name_item.text().lower()
+                match = keyword in name_text
+                self.tableWidget.setRowHidden(row, not match)
+
 
     def show_medicine_detail(self, medicine_id):
         """Open medicine detail dialog."""
@@ -162,6 +145,191 @@ class Medicine_w(QMainWindow):
             if medicine_id:
                 print(f"Opening details for medicine ID: {medicine_id}")
                 self.show_medicine_detail(medicine_id)
+class MedicineInformation_w(QDialog):
+    """Dialog window to display detailed information about a medicine."""
+    def __init__(self, context, medicine_id):
+        super(MedicineInformation_w, self).__init__()
+        self.context = context
+        self.medicine_id_value = medicine_id
+
+        # Load UI
+        ui_path = os.path.join(current_dir, 'ui', 'medicine_information.ui')
+        print(f">>> medicine_information.ui path: {ui_path}")
+        if not os.path.exists(ui_path):
+            raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
+        uic.loadUi(ui_path, self)
+
+        # Set window properties
+        self.setWindowTitle("Medicine Information")
+        self.setWindowIcon(QIcon(icon_path))
+        self.edit_mode = False
+        self.pushButton.clicked.connect(self.toggle_edit_mode)
+        # Load data
+        self.load_medicine_data(self.medicine_id_value)
+        
+    def load_medicine_data(self, medicine_id_value):
+        try:
+            db = self.context.db_manager
+            sql = """
+                SELECT m.medicine_id, m.medicine_name, m.generic_name, c.category_name, s.supplier_name,
+                    m.batch_number, m.expiration_date, m.stock_quantity, m.unit_price, m.sale_price
+                FROM medicine m
+                JOIN category c ON m.category_id = c.category_id
+                JOIN supplier s ON m.supplier_id = s.supplier_id
+                WHERE m.medicine_id = %s
+            """
+            db.execute(sql, (medicine_id_value,))
+            result = db.fetchone()
+
+            if result:
+                self.medicine_id.setText(str(result[0]))
+                self.medicine_id.setReadOnly(True)
+                self.medicine_name.setText(result[1])
+                self.medicine_name.setReadOnly(True)
+                self.generic_name.setText(result[2])
+                self.generic_name.setReadOnly(True)
+                self.category_name.setText(result[3])
+                self.category_name.setReadOnly(True)
+                self.supplier_name.setText(result[4])
+                self.supplier_name.setReadOnly(True)
+                self.batch_number.setText(result[5])
+                self.batch_number.setReadOnly(True)
+
+                if result[6]:  # expiration_date
+                    self.expiration_date.setDate(result[6].date())
+                    # self.expiration_date.setReadOnly(True)
+                    self.expiration_date.setReadOnly(True)
+
+                self.stock_quantity.setValue(result[7])
+                self.stock_quantity.setEnabled(False)
+                self.unit_price.setValue(float(result[8]))
+                self.unit_price.setEnabled(False)
+                self.sale_price.setValue(float(result[9]))
+                self.sale_price.setEnabled(False)
+            else:
+                QMessageBox.warning(self, "Thông báo", "Không tìm thấy thông tin thuốc.")
+
+        except Exception as e:
+            print(f"Lỗi khi tải dữ liệu thuốc: {e}")
+            QMessageBox.warning(self, "Lỗi", f"Không thể tải thông tin thuốc: {e}")
+    def toggle_edit_mode(self):
+        self.edit_mode = not self.edit_mode
+
+        self.set_fields_editable(self.edit_mode)
+        self.pushButton.setText("💾 Save" if self.edit_mode else "Edit...")
+
+        if self.edit_mode:
+            self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Cancel)
+
+            # ✅ Lưu dữ liệu ban đầu
+            self.original_data = {
+                "name": self.medicine_name.text(),
+                "generic": self.generic_name.text(),
+                "category": self.category_name.text(),
+                "supplier": self.supplier_name.text(),
+                "batch": self.batch_number.text(),
+                "exp_date": self.expiration_date.date(),
+                "quantity": self.stock_quantity.value(),
+                "unit_price": self.unit_price.value(),
+                "sale_price": self.sale_price.value()
+            }
+
+            cancel_btn = self.buttonBox.button(QDialogButtonBox.StandardButton.Cancel)
+            if cancel_btn:
+                try:
+                    cancel_btn.clicked.disconnect()
+                except:
+                    pass
+                cancel_btn.clicked.connect(self.cancel_edit)
+        else:
+            self.save_medicine_data()
+            self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Close)
+
+
+    def set_fields_editable(self, editable):
+        self.medicine_name.setReadOnly(not editable)
+        self.generic_name.setReadOnly(not editable)
+        self.category_name.setReadOnly(True)   
+        self.supplier_name.setReadOnly(True)
+        self.batch_number.setReadOnly(not editable)
+
+        self.expiration_date.setEnabled(editable)
+        self.stock_quantity.setEnabled(editable)
+        self.unit_price.setEnabled(editable)
+        self.sale_price.setEnabled(editable)
+
+
+    def save_medicine_data(self):
+        try:
+            db = self.context.db_manager
+
+            sql = """
+                UPDATE medicine SET
+                    medicine_name = %s,
+                    generic_name = %s,
+                    batch_number = %s,
+                    expiration_date = %s,
+                    stock_quantity = %s,
+                    unit_price = %s,
+                    sale_price = %s
+                WHERE medicine_id = %s
+            """
+            values = (
+                self.medicine_name.text(),
+                self.generic_name.text(),
+                self.batch_number.text(),
+                self.expiration_date.date().toString("yyyy-MM-dd"),
+                self.stock_quantity.value(),
+                self.unit_price.value(),
+                self.sale_price.value(),
+                self.medicine_id.text()
+            )
+
+            db.execute(sql, values)
+            db.commit()
+            QMessageBox.information(self, "Thành công", "Đã lưu thông tin thuốc.")
+        except Exception as e:
+            QMessageBox.warning(self, "Lỗi", f"Không thể lưu: {e}")
+
+
+    def cancel_edit(self):
+        if self.edit_mode:
+            self.medicine_name.setText(self.original_data["name"])
+            self.generic_name.setText(self.original_data["generic"])
+            self.category_name.setText(self.original_data["category"])
+            self.supplier_name.setText(self.original_data["supplier"])
+            self.batch_number.setText(self.original_data["batch"])
+            self.expiration_date.setDate(self.original_data["exp_date"])
+            self.stock_quantity.setValue(self.original_data["quantity"])
+            self.unit_price.setValue(self.original_data["unit_price"])
+            self.sale_price.setValue(self.original_data["sale_price"])
+
+            self.set_fields_editable(False)
+            self.edit_mode = False
+            self.pushButton.setText("Edit...")
+            self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Close)
+            QMessageBox.information(self, "Hủy chỉnh sửa", "Thay đổi đã được hủy.")
+
+
+class MedicineInformationAdd_w(QDialog):
+    """Dialog window to display detailed information about a medicine."""
+    def __init__(self, context, medicine_id):
+        super(MedicineInformationAdd_w, self).__init__()
+        self.context = context
+        self.medicine_id_value = medicine_id
+
+        # Load UI
+        ui_path = os.path.join(current_dir, 'ui', 'medicine_information_add.ui')
+        print(f">>> medicine_information.ui path: {ui_path}")
+        if not os.path.exists(ui_path):
+            raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
+        uic.loadUi(ui_path, self)
+
+        # Set window properties
+        self.setWindowTitle("Medicine Information")
+        self.setWindowIcon(QIcon(icon_path))
+
+
 # Program entry point
 if __name__ == '__main__':
     # Set up paths
