@@ -68,7 +68,57 @@ class Main_w(QMainWindow):
         self.actionStaff.triggered.connect(self.goto_staff)
         self.actionLog_out.triggered.connect(self.goto_login)
         self.actionLogs.triggered.connect(self.goto_logs)
-        
+        self.load_stock_overview()
+        self.load_outdate_warning()
+        self.load_today_invoice()
+
+    def load_stock_overview(self):
+        db = self.context.db_manager
+        sql = """SELECT medicine_id, medicine_name, unit, stock_quantity, batch_number, sale_price FROM medicine"""
+        db.execute(sql)
+        results = db.fetchall()
+        self.stock_medicine.setRowCount(len(results))
+        for row, data in enumerate(results):
+            for col, value in enumerate(data):
+                item = QTableWidgetItem(str(value))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.stock_medicine.setItem(row, col, item)
+    def load_outdate_warning(self):
+        db = self.context.db_manager
+        sql = """SELECT medicine_id, medicine_name, stock_quantity, unit, batch_number, expiration_date,
+                DATEDIFF(expiration_date, NOW()) AS days_left,
+                CASE
+                  WHEN DATEDIFF(expiration_date, NOW()) <= 30 THEN '⚠ Gấp'
+                  WHEN DATEDIFF(expiration_date, NOW()) <= 60 THEN '⏳ Sắp hết hạn'
+                  ELSE '✅'
+                END AS status
+                FROM medicine
+                WHERE DATEDIFF(expiration_date, NOW()) <= 60
+                ORDER BY expiration_date ASC
+                """  
+        db.execute(sql)
+        results = db.fetchall()
+        self.outdate_medicine.setRowCount(len(results))
+        for row, data in enumerate(results):
+            for col, value in enumerate(data):
+                item = QTableWidgetItem(str(value))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.outdate_medicine.setItem(row, col, item)
+    def load_today_invoice(self):
+        db = self.context.db_manager
+        sql = """SELECT invoice_id, invoice_date, customer_id, total_amount, staff_id, payment_status
+                 FROM invoice WHERE DATE(invoice_date) = CURDATE()"""
+        db.execute(sql)
+        results = db.fetchall()
+        self.tableWidget.setRowCount(len(results))
+        for row, data in enumerate(results):
+            for col, value in enumerate(data):
+                item = QTableWidgetItem(str(value))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.tableWidget.setItem(row, col, item)
+
+
+    
     def closeEvent(self, event):
         QApplication.quit()
 
