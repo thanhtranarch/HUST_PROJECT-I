@@ -89,7 +89,7 @@ python main.py
   ```
 - Có thể sửa trong `DBManager.py`
 
-## 📊 Mở rộng trong tương lai
+## Mở rộng trong tương lai
 
 - Thêm chức năng **xuất báo cáo PDF**
 - Lọc báo cáo theo ngày, tháng, năm
