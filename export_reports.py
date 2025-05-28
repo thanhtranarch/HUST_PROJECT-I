@@ -4,10 +4,15 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from datetime import datetime
 import os
+import sys
 
-# Đăng ký font Arial (chỉ cần làm 1 lần cho mỗi file/hàm)
-font_path = os.path.join("fonts", "Arial.ttf")
-pdfmetrics.registerFont(TTFont("ArialUnicode", font_path))
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
+font_path = resource_path("fonts/Arial.ttf")
+pdfmetrics.registerFont(TTFont('Arial', font_path))
 
 def export_stock_report(context, filepath=None):
     if filepath is None:
