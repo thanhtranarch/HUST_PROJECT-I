@@ -4,7 +4,7 @@ from PyQt6.uic import loadUi
 from PyQt6.QtGui import QIcon, QFont, QBrush, QColor
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QLabel
-from PyQt6.QtCore import QTimer
+from PyQt6.QtCore import *
 from datetime import datetime
 from DBManager import DBManager
 import sys
@@ -16,7 +16,8 @@ import bcrypt
 
 # Connect to DataBase - Done
 class AppContext:
-    def __init__(self):
+    def __init__(self, staff_id = None):
+        self.staff_id = staff_id
         self.db_manager = DBManager()
         self.connection = self.db_manager.connect()
     def __del__(self):
@@ -106,7 +107,7 @@ class Main_w(QMainWindow):
         self.hide()
 
     def goto_logs(self):
-        self.log_window = Log_w(self.context)
+        self.log_window = Logs_w(self.context)
         self.log_window.show()
         self.hide()
 
@@ -341,6 +342,8 @@ class SupplierInformation_w(QDialog):
             db.execute(sql, values)
             db.commit()
             QMessageBox.information(self, "Thành công", "Đã lưu thông tin nhà cung cấp.")
+            self.context.db_manager.log_action(self.context.staff_id, f"Cập nhật nhà cung cấp: {self.supplier_id.text()}")
+
         except Exception as e:
             QMessageBox.warning(self, "Lỗi", f"Không thể lưu: {e}")
 
@@ -363,8 +366,7 @@ class SupplierInformation_w(QDialog):
             self.pushButton.setText("Edit...")
             self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Ok)
             QMessageBox.information(self, "Hủy chỉnh sửa", "Thay đổi đã được hủy.")
-
-
+            self.context.db_manager.log_action(self.context.staff_id, f"Hủy chỉnh sửa nhà cung cấp: {self.supplier_id.text()}")
 
 
 # Customer Window
@@ -401,7 +403,6 @@ class Customer_w(QMainWindow):
         self.staff_window = Staff_w(self.context)
         self.staff_window.show()
         self.hide()
-
 
 # Staff Window - Done
 class Staff_w(QMainWindow):
@@ -563,6 +564,7 @@ class Medicine_w(QMainWindow):
         self.setWindowTitle("Medicine Management")
         self.setWindowIcon(QIcon(icon_path))
         self.back_button.clicked.connect(self.goto_main)
+
         # Connect signals
         self.tableWidget.cellClicked.connect(self.handle_cell_click)
         self.tableWidget.setSortingEnabled(True)
@@ -655,6 +657,7 @@ class Medicine_w(QMainWindow):
     def show_medicine_detail(self, medicine_id):
         """Open medicine detail dialog."""
         detail_dialog = MedicineInformation_w(self.context, medicine_id)
+        detail_dialog.data_updated.connect(self.load_medicine_data)
         detail_dialog.exec()
 
     def handle_cell_click(self, row, column):
@@ -675,6 +678,7 @@ class Medicine_w(QMainWindow):
         self.main_window = Main_w(self.context)
         self.main_window.show()
         self.hide()
+
 class MedicineInformation_w(QDialog):
     """Dialog window to display detailed information about a medicine."""
     def __init__(self, context, medicine_id):
@@ -693,10 +697,13 @@ class MedicineInformation_w(QDialog):
         self.setWindowTitle("Medicine Information")
         self.setWindowIcon(QIcon(icon_path))
         self.edit_mode = False
+        self.deleteButton.clicked.connect(self.confirm_delete_medicine)
         self.pushButton.clicked.connect(self.toggle_edit_mode)
+        self.deleteButton.setEnabled(False)
         # Load data
         self.load_medicine_data(self.medicine_id_value)
-        
+        data_updated = pyqtSignal()
+
     def load_medicine_data(self, medicine_id_value):
         try:
             db = self.context.db_manager
@@ -747,6 +754,8 @@ class MedicineInformation_w(QDialog):
 
         self.set_fields_editable(self.edit_mode)
         self.pushButton.setText("💾 Save" if self.edit_mode else "Edit...")
+        self.deleteButton.setEnabled(self.edit_mode)
+
 
         if self.edit_mode:
             self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Cancel)
@@ -818,6 +827,8 @@ class MedicineInformation_w(QDialog):
             db.execute(sql, values)
             db.commit()
             QMessageBox.information(self, "Thành công", "Đã lưu thông tin thuốc.")
+            self.context.db_manager.log_action(self.context.staff_id, f"Cập nhật thuốc: {self.medicine_id.text()}")
+
         except Exception as e:
             QMessageBox.warning(self, "Lỗi", f"Không thể lưu: {e}")
 
@@ -839,8 +850,32 @@ class MedicineInformation_w(QDialog):
             self.pushButton.setText("Edit...")
             self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Close)
             QMessageBox.information(self, "Hủy chỉnh sửa", "Thay đổi đã được hủy.")
+
+    def confirm_delete_medicine(self):
+        reply = QMessageBox.question(self,"Xác nhận xóa",
+        "Bạn có chắc chắn muốn xóa thuốc này?",
+        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            self.delete_medicine()
+            self.context.db_manager.log_action(self.context.staff_id, f"Xóa thuốc: {medicine_id}")
+
+
+    def delete_medicine(self):
+        try:
+            db = self.context.db_manager
+            sql = "DELETE FROM medicine WHERE medicine_id = %s"
+            db.execute(sql, (self.medicine_id.text(),))
+            db.commit()
+            QMessageBox.information(self, "Thành công", "Đã xóa thuốc khỏi hệ thống.")
+            self.data_updated.emit()  # Phát tín hiệu
+            self.accept()             # Đóng dialog  # Đóng dialog sau khi xóa thành công
+        except Exception as e:
+            QMessageBox.warning(self, "Lỗi", f"Không thể xóa thuốc: {e}")
+
 class MedicineInformationAdd_w(QDialog):
-    """Dialog window to display detailed information about a medicine."""
+
     def __init__(self, context, medicine_id):
         super(MedicineInformationAdd_w, self).__init__()
         self.context = context
@@ -929,6 +964,65 @@ class Invoice_w(QMainWindow):
         self.hide()
 
 # Logs Window
+class Logs_w(QMainWindow):
+    def __init__(self, context):    
+        super(Logs_w, self).__init__()
+        self.context = context
+        ui_path = os.path.join(current_dir, 'ui', 'logs.ui')
+        print(">>> logs.ui path:", ui_path)
+        if not os.path.exists(ui_path):
+            raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
+        uic.loadUi(ui_path, self)
+        self.setWindowTitle("Logs Management")
+        self.setWindowIcon(QtGui.QIcon(icon_path))
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+           # Load initial data
+        self.load_log_data()
+
+        # Connect signals
+        self.tableWidget.cellClicked.connect(self.handle_cell_click)
+        self.tableWidget.setSortingEnabled(True)
+        self.search_input.textChanged.connect(self.search_logs)
+
+    def load_log_data(self):
+        try:
+            db = self.context.db_manager
+            sql = """
+                SELECT log_id, staff_id, action, log_time
+                FROM activity_log
+                ORDER BY log_time DESC
+            """
+            db.execute(sql)
+            results = db.fetchall()
+
+            self.tableWidget.setRowCount(len(results))
+            self.tableWidget.setColumnCount(4)
+            self.tableWidget.setHorizontalHeaderLabels(["Log ID", "Staff ID", "Action", "Timestamp"])
+            self.tableWidget.setSortingEnabled(False)
+
+            for row_idx, row_data in enumerate(results):
+                for col_idx, value in enumerate(row_data):
+                    item = QTableWidgetItem(str(value))
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    self.tableWidget.setItem(row_idx, col_idx, item)
+
+            self.tableWidget.setSortingEnabled(True)
+            self.tableWidget.resizeColumnsToContents()
+
+        except Exception as e:
+            QMessageBox.warning(self, "Lỗi", f"Không thể tải log: {e}")
+    def search_logs(self):
+        keyword = self.search_input.text().strip().lower()
+
+        for row in range(self.tableWidget.rowCount()):
+            visible = False
+            for col in [1, 2]:  # Staff ID và Action
+                item = self.tableWidget.item(row, col)
+                if item and keyword in item.text().lower():
+                    visible = True
+                    break
+            self.tableWidget.setRowHidden(row, not visible)
+
 
 # Login Window - Done
 class Login_w(QDialog):
@@ -1002,6 +1096,7 @@ class Login_w(QDialog):
                     QMessageBox.information(self, "Login Success", "Đăng nhập thành công!")
                     self.context.staff_id = result[0]
                     self.main_window = Main_w(self.context, un)
+                    self.context.db_manager.log_action(self.context.staff_id, "Đăng nhập hệ thống")
                     self.main_window.show()
                     self.close()
                 else:
@@ -1085,7 +1180,7 @@ class Register_w(QDialog):
             db.commit()
 
             QMessageBox.information(self, "Register Success", "Đăng ký thành công!")
-
+            self.context.db_manager.log_action(self.context.staff_id, f"Thêm nhân viên: {staff_id}")
             self.staff_id.clear()
             self.staff_psw.clear()
             self.staff_name.clear()

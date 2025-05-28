@@ -175,7 +175,8 @@ class DBManager:
 
     def log_action(self, staff_id, action):
         try:
-            self.execute("INSERT INTO activity_log (staff_id, action) VALUES (%s, %s)", (staff_id, action))
-            self.commit()
+            sql = "INSERT INTO activity_log (staff_id, action, log_time) VALUES (%s, %s, NOW())"
+            self.execute(sql, (staff_id, action))
+            self.connection.commit()
         except Exception as e:
-            print("Error logging action:", e)
+            print(f"[LOG ERROR] {e}")

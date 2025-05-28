@@ -382,6 +382,25 @@
     <double>0.000000000000000</double>
    </property>
   </widget>
+  <widget class="QPushButton" name="deleteButton">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>290</y>
+     <width>61</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Delete</string>
+   </property>
+   <property name="flat">
+    <bool>false</bool>
+   </property>
+  </widget>
   <zorder>label_5</zorder>
   <zorder>buttonBox</zorder>
   <zorder>ID</zorder>
@@ -408,6 +427,7 @@
   <zorder>expiration_date</zorder>
   <zorder>unit_price</zorder>
   <zorder>sale_price</zorder>
+  <zorder>deleteButton</zorder>
  </widget>
  <tabstops>
   <tabstop>medicine_name</tabstop>

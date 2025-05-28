@@ -246,7 +246,7 @@ class Ui_MainWindow(object):
         self.actionSupplier.setText(QCoreApplication.translate("MainWindow", u"Supplier", None))
         self.actionStock.setText(QCoreApplication.translate("MainWindow", u"Stock", None))
         self.actionLog_out.setText(QCoreApplication.translate("MainWindow", u"\u2b8c Log out", None))
-        self.actionLog.setText(QCoreApplication.translate("MainWindow", u"Log", None))
+        self.actionLog.setText(QCoreApplication.translate("MainWindow", u"Logs", None))
         self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"DANH S\u00c1CH THU\u1ed0C T\u1ed2N KHO", None))
         self.list_outdate.setTitle(QCoreApplication.translate("MainWindow", u"THU\u1ed0C S\u1eaeP H\u1ebeT H\u1ea0N", None))
         self.warning_detail.setText(QCoreApplication.translate("MainWindow", u"CHI TI\u1ebeT", None))
@@ -300,7 +300,7 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem20 = self.tableWidget.horizontalHeaderItem(6)
         ___qtablewidgetitem20.setText(QCoreApplication.translate("MainWindow", u"Details", None));
         self.export_report.setText(QCoreApplication.translate("MainWindow", u"IN B\u00c1O C\u00c1O NG\u00c0Y", None))
-        self.menuMaindashboard.setTitle(QCoreApplication.translate("MainWindow", u"Maindashboard", None))
+        self.menuMaindashboard.setTitle("")
         self.menuGeneral_Management.setTitle(QCoreApplication.translate("MainWindow", u"General Management", None))
         pass
     # retranslateUi

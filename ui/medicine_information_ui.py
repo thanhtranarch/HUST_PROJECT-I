@@ -125,6 +125,11 @@ class Ui_Dialog(object):
         self.sale_price.setLocale(QLocale(QLocale.Vietnamese, QLocale.Vietnam))
         self.sale_price.setMaximum(1000000.000000000000000)
         self.sale_price.setSingleStep(0.000000000000000)
+        self.deleteButton = QPushButton(Dialog)
+        self.deleteButton.setObjectName(u"deleteButton")
+        self.deleteButton.setEnabled(False)
+        self.deleteButton.setGeometry(QRect(170, 290, 61, 21))
+        self.deleteButton.setFlat(False)
         self.label_5.raise_()
         self.buttonBox.raise_()
         self.ID.raise_()
@@ -151,6 +156,7 @@ class Ui_Dialog(object):
         self.expiration_date.raise_()
         self.unit_price.raise_()
         self.sale_price.raise_()
+        self.deleteButton.raise_()
         QWidget.setTabOrder(self.medicine_name, self.medicine_id)
         QWidget.setTabOrder(self.medicine_id, self.category_name)
         QWidget.setTabOrder(self.category_name, self.supplier_name)
@@ -180,5 +186,6 @@ class Ui_Dialog(object):
         self.Quantity.setText(QCoreApplication.translate("Dialog", u"Quantity", None))
         self.Image_2.setText("")
         self.pushButton.setText(QCoreApplication.translate("Dialog", u"Edit...", None))
+        self.deleteButton.setText(QCoreApplication.translate("Dialog", u"Delete", None))
     # retranslateUi
 
