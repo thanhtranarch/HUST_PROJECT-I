@@ -43,81 +43,92 @@ MediManager/
 ├── icon/                # Icon dùng cho giao diện (app_icon_dark/light)
 └── README.md            # (File này)
 ```
-## Đóng gói thành file .exe
+## 🧾 Các chức năng chính
 
-Bạn có thể đóng gói ứng dụng thành file thực thi `.exe` bằng cách sử dụng `PyInstaller`.
+- **Đăng nhập / Đăng ký** (Phân quyền: admin, manager, staff)
+- **Quản lý thuốc**: thêm, sửa, xóa, chi tiết, lọc theo danh mục
+- **Quản lý nhà cung cấp**
+- **Quản lý khách hàng**
+- **Quản lý nhân viên**
+- **Hóa đơn**: tạo và theo dõi hóa đơn trong ngày
+- **Tồn kho**: theo dõi tồn kho, thuốc sắp hết hạn
+- **Lịch sử hoạt động**: log hành động người dùng
+- **Báo cáo xuất file (đang phát triển)**: tổng tồn kho, hóa đơn, thuốc sắp hết hạn
 
-### 1. Cài đặt PyInstaller
+---
 
-```bash
-pip install pyinstaller
-```
+## 🛠Cài đặt và chạy
 
-### 2. Đóng gói
-
-```bash
-pyinstaller --noconfirm --windowed --icon=icon/app_icon_dark.ico --add-data "ui;ui" --add-data "icon;icon" main.py
-```
-
-### 3. Kết quả
-
-File thực thi sẽ nằm trong thư mục `dist/`. Chạy `main.exe` để sử dụng ứng dụng mà không cần Python.
-
-> ⚠️ Lưu ý:
-> - Đảm bảo các thư mục `ui/` và `icon/` được chỉ định đúng.
-> - Nếu dùng PyQt6, không cần chỉnh sửa thêm `--hidden-import`, nhưng với PySide có thể cần.
-
-## Đăng nhập & Đăng ký
-
-- Tài khoản mặc định:  
-  `Username: admin`  
-  `Password: admin`  
-  Hệ thống sẽ tự tạo tài khoản admin nếu chưa có.
-
-- Người dùng có thể đăng ký thêm tài khoản mới từ cửa sổ `Login`.
-
-## Các chức năng chính
-
-- **Đăng nhập / Đăng ký** người dùng
-- **Quản lý thuốc:** thêm, sửa, xóa, chi tiết thuốc, lọc theo danh mục
-- **Quản lý kho:** theo dõi tồn kho, thuốc sắp hết hạn
-- **Hóa đơn:** tạo hóa đơn, xem danh sách hóa đơn trong ngày
-- **Khách hàng / Nhà cung cấp / Nhân viên:** thêm, sửa, tìm kiếm
-- **Lịch sử hoạt động:** ghi nhận mọi thao tác người dùng
-- **Báo cáo xuất file (dự kiến):** tổng kho, hóa đơn trong ngày, thuốc sắp hết hạn
-
-## Cách cài đặt và chạy
-
-### 1. Cài thư viện cần thiết
+### 1. Cài đặt thư viện cần thiết
 
 ```bash
 pip install PyQt6 mysqlclient bcrypt darkdetect
 ```
 
-### 2. Khởi chạy ứng dụng
+### 2. Thiết lập MySQL qua XAMPP
+
+> ⚠️ Bật MySQL từ XAMPP Control Panel (port mặc định 3306)  
+> Sử dụng `localhost`, user `root`, và password như khai báo trong `DBManager.py`
+
+### 3. Khởi chạy ứng dụng
 
 ```bash
 python main.py
 ```
 
-> ⚠️ Lưu ý: bạn cần bật MySQL thông qua XAMPP Control Panel (port mặc định 3306), sử dụng `localhost`, user `root`, và password như đã đặt trong `DBManager.py`.
+---
 
-### 3. Cấu hình kết nối database (nếu cần)
+## Tài khoản mặc định
 
-- Mặc định:
-  ```python
-  host='localhost'
-  user='root'
-  passwd='@Thanh070891'
-  ```
-- Có thể sửa trong `DBManager.py`
+- `Username: admin`  
+- `Password: admin`  
+> Hệ thống sẽ tự động tạo tài khoản admin nếu chưa có.
 
-## Mở rộng trong tương lai
+---
 
-- Thêm chức năng **xuất báo cáo PDF**
-- Lọc báo cáo theo ngày, tháng, năm
-- Giao diện hiện đại hơn
-- API kết nối bên ngoài hoặc bản Mobile
+## Đóng gói thành file .exe
+
+Bạn có thể đóng gói ứng dụng thành `.exe` bằng `PyInstaller`.
+
+### Bước 1: Cài đặt PyInstaller
+
+```bash
+pip install pyinstaller
+```
+
+### Bước 2: Đóng gói ứng dụng
+
+```bash
+pyinstaller --noconfirm --windowed --icon=icon/app_icon_dark.ico --add-data "ui;ui" --add-data "icon;icon" main.py
+```
+
+### Bước 3: Chạy ứng dụng
+
+File `main.exe` nằm trong thư mục `dist/`. Chạy file này để sử dụng mà không cần Python.
+
+> ⚠️ Đảm bảo đường dẫn `ui/` và `icon/` chính xác. Nếu dùng PySide6 có thể cần bổ sung `--hidden-import`.
+
+---
+
+## Cơ sở dữ liệu
+
+Dữ liệu nằm trong schema `medimanager` với các bảng chính:
+- `medicine`, `category`, `supplier`, `stock`, `stock_transaction`
+- `invoice`, `invoice_detail`, `customer`
+- `staff`, `activity_log`
+
+SQL script mẫu: `medimanager.sql`
+
+---
+
+## Hướng phát triển tương lai
+
+- Xuất báo cáo định dạng PDF
+- Lọc báo cáo theo ngày/tháng/năm
+- Tích hợp API / phiên bản mobile
+- Giao diện hiện đại hơn (Dark/Light mode)
+
+---
 
 ## Tác giả
 
