@@ -29,23 +29,22 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(u"centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.horizontalSpacer_7 = QSpacerItem(18, 536, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.gridLayout.addItem(self.horizontalSpacer_7, 0, 0, 1, 1)
-
         self.horizontalSpacer_6 = QSpacerItem(28, 536, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.gridLayout.addItem(self.horizontalSpacer_6, 0, 2, 1, 1)
+
+        self.horizontalSpacer_7 = QSpacerItem(18, 536, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.gridLayout.addItem(self.horizontalSpacer_7, 0, 0, 1, 1)
 
         self.invoice_daily = QGroupBox(self.centralwidget)
         self.invoice_daily.setObjectName(u"invoice_daily")
         self.gridLayout_2 = QGridLayout(self.invoice_daily)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.search_input = QLineEdit(self.invoice_daily)
-        self.search_input.setObjectName(u"search_input")
-        self.search_input.setEnabled(True)
+        self.back_button = QPushButton(self.invoice_daily)
+        self.back_button.setObjectName(u"back_button")
 
-        self.gridLayout_2.addWidget(self.search_input, 1, 4, 1, 1)
+        self.gridLayout_2.addWidget(self.back_button, 1, 0, 1, 1)
 
         self.horizontalSpacer = QSpacerItem(407, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
@@ -55,20 +54,7 @@ class Ui_MainWindow(object):
         self.label.setObjectName(u"label")
         self.label.setEnabled(True)
 
-        self.gridLayout_2.addWidget(self.label, 1, 3, 1, 1)
-
-        self.back_button = QPushButton(self.invoice_daily)
-        self.back_button.setObjectName(u"back_button")
-
-        self.gridLayout_2.addWidget(self.back_button, 1, 0, 1, 1)
-
-        self.tableWidget = QTableWidget(self.invoice_daily)
-        self.tableWidget.setObjectName(u"tableWidget")
-        self.tableWidget.setRowCount(0)
-        self.tableWidget.horizontalHeader().setCascadingSectionResizes(True)
-        self.tableWidget.verticalHeader().setDefaultSectionSize(38)
-
-        self.gridLayout_2.addWidget(self.tableWidget, 2, 0, 1, 5)
+        self.gridLayout_2.addWidget(self.label, 1, 5, 1, 1)
 
         self.invoice_detail = QPushButton(self.invoice_daily)
         self.invoice_detail.setObjectName(u"invoice_detail")
@@ -78,6 +64,38 @@ class Ui_MainWindow(object):
         self.invoice_detail.setAutoDefault(False)
 
         self.gridLayout_2.addWidget(self.invoice_detail, 3, 0, 1, 1)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout_2.addItem(self.horizontalSpacer_2, 3, 1, 1, 2)
+
+        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout_2.addItem(self.horizontalSpacer_4, 3, 4, 1, 1)
+
+        self.tableWidget = QTableWidget(self.invoice_daily)
+        self.tableWidget.setObjectName(u"tableWidget")
+        self.tableWidget.setRowCount(0)
+        self.tableWidget.horizontalHeader().setCascadingSectionResizes(True)
+        self.tableWidget.verticalHeader().setDefaultSectionSize(38)
+
+        self.gridLayout_2.addWidget(self.tableWidget, 2, 0, 1, 7)
+
+        self.search_input = QLineEdit(self.invoice_daily)
+        self.search_input.setObjectName(u"search_input")
+        self.search_input.setEnabled(True)
+
+        self.gridLayout_2.addWidget(self.search_input, 1, 6, 1, 1)
+
+        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout_2.addItem(self.horizontalSpacer_3, 3, 3, 1, 1)
+
+        self.add_stock = QPushButton(self.invoice_daily)
+        self.add_stock.setObjectName(u"add_stock")
+        self.add_stock.setMaximumSize(QSize(120, 16777215))
+
+        self.gridLayout_2.addWidget(self.add_stock, 3, 6, 1, 1)
 
 
         self.gridLayout.addWidget(self.invoice_daily, 0, 1, 1, 1)
@@ -102,9 +120,10 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
         self.invoice_daily.setTitle(QCoreApplication.translate("MainWindow", u"TH\u1ed0NG K\u00ca NH\u1eacP KHO", None))
-        self.search_input.setPlaceholderText(QCoreApplication.translate("MainWindow", u"search", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"\ud83d\udd0d", None))
         self.back_button.setText(QCoreApplication.translate("MainWindow", u"Back", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"\ud83d\udd0d", None))
         self.invoice_detail.setText(QCoreApplication.translate("MainWindow", u"PRINT", None))
+        self.search_input.setPlaceholderText(QCoreApplication.translate("MainWindow", u"search", None))
+        self.add_stock.setText(QCoreApplication.translate("MainWindow", u"T\u1ea0O PHI\u1ebeU NH\u1eacP", None))
     # retranslateUi
 

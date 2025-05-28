@@ -163,6 +163,10 @@ class DBManager:
 
     def fetchone(self):
         return self.cursor.fetchone()
+    
+    def rollback(self):
+        if self.connection:
+            self.connection.rollback()
 
     def commit(self):
         self.connection.commit()
