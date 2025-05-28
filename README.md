@@ -69,5 +69,5 @@ https://dbdiagram.io/d/PROJECT-I-MEDICINE-MANAGEMENT-67ef9cc94f7afba184576060?ut
 
 ## Tác giả
 
-TRẦN TIẾN THẠNH – HUST - PROJECT I
+TRẦN TIẾN THẠNH
 
