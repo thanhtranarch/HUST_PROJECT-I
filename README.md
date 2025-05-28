@@ -43,6 +43,29 @@ MediManager/
 ├── icon/                # Icon dùng cho giao diện (app_icon_dark/light)
 └── README.md            # (File này)
 ```
+## Đóng gói thành file .exe
+
+Bạn có thể đóng gói ứng dụng thành file thực thi `.exe` bằng cách sử dụng `PyInstaller`.
+
+### 1. Cài đặt PyInstaller
+
+```bash
+pip install pyinstaller
+```
+
+### 2. Đóng gói
+
+```bash
+pyinstaller --noconfirm --windowed --icon=icon/app_icon_dark.ico --add-data "ui;ui" --add-data "icon;icon" main.py
+```
+
+### 3. Kết quả
+
+File thực thi sẽ nằm trong thư mục `dist/`. Chạy `main.exe` để sử dụng ứng dụng mà không cần Python.
+
+> ⚠️ Lưu ý:
+> - Đảm bảo các thư mục `ui/` và `icon/` được chỉ định đúng.
+> - Nếu dùng PyQt6, không cần chỉnh sửa thêm `--hidden-import`, nhưng với PySide có thể cần.
 
 ## Đăng nhập & Đăng ký
 
@@ -63,7 +86,7 @@ MediManager/
 - **Lịch sử hoạt động:** ghi nhận mọi thao tác người dùng
 - **Báo cáo xuất file (dự kiến):** tổng kho, hóa đơn trong ngày, thuốc sắp hết hạn
 
-## 🛠️ Cách cài đặt và chạy
+## Cách cài đặt và chạy
 
 ### 1. Cài thư viện cần thiết
 
