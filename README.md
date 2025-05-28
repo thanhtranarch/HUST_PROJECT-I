@@ -63,7 +63,9 @@ MediManager/
 - Lưu dữ liệu vào SQLite hoặc MySQL
 - Tạo form đăng nhập phân quyền (admin/nhân viên)
 - Xuất báo cáo sang Excel/PDF
-
+  
+## Sơ đồ quan hệ các thực thể
+https://dbdiagram.io/d/PROJECT-I-MEDICINE-MANAGEMENT-67ef9cc94f7afba184576060?utm_source=dbdiagram_embed&utm_medium=bottom_open
 
 ## Tác giả
 
