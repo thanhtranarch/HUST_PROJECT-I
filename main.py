@@ -376,34 +376,165 @@ class Customer_w(QMainWindow):
         super(Customer_w, self).__init__()
         self.context = context
         ui_path = os.path.join(current_dir, 'ui', 'customer.ui')
-        print(">>> customer.ui path:", ui_path)
         if not os.path.exists(ui_path):
             raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
         uic.loadUi(ui_path, self)
+
         self.setWindowTitle("Customer Management")
         self.setWindowIcon(QtGui.QIcon(icon_path))
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+
         self.actionSave.triggered.connect(self.save_customer_data)
+        self.tableWidget.cellClicked.connect(self.handle_cell_click)
+
+        self.load_customer_data()
+
+    def load_customer_data(self):
+        try:
+            db = self.context.db_manager
+            sql = "SELECT customer_id, customer_name, customer_phone, customer_email FROM customer"
+            db.execute(sql)
+            results = db.fetchall()
+
+            self.tableWidget.setRowCount(len(results))
+            self.tableWidget.setColumnCount(5)
+            self.tableWidget.setHorizontalHeaderLabels(["ID", "Name", "Phone", "Email", "Details"])
+            self.tableWidget.setColumnHidden(0, True)
+
+            for row_idx, row_data in enumerate(results):
+                customer_id = row_data[0]
+                for col_idx in range(4):
+                    item = QTableWidgetItem(str(row_data[col_idx]))
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    if col_idx == 1:
+                        font = QFont()
+                        font.setBold(True)
+                        font.setUnderline(True)
+                        item.setFont(font)
+                        item.setData(Qt.ItemDataRole.UserRole, customer_id)
+                    self.tableWidget.setItem(row_idx, col_idx, item)
+
+                # Cột "View Details"
+                detail_item = QTableWidgetItem("View Details")
+                detail_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                detail_item.setData(Qt.ItemDataRole.UserRole, customer_id)
+                self.tableWidget.setItem(row_idx, 4, detail_item)
+        except Exception as e:
+            print("Lỗi khi tải dữ liệu khách hàng:", e)
 
     def save_customer_data(self):
-        customer_name = self.lineEdit_Customer_Name.text()
-        customer_phone = self.lineEdit_Phone_Number.text()
-        customer_email = self.lineEdit_Contact_Person.text()
+        try:
+            name = self.lineEdit_Customer_Name.text()
+            phone = self.lineEdit_Phone_Number.text()
+            email = self.lineEdit_Contact_Person.text()
 
-        sql_query = """
-            INSERT INTO customer (customer_name, customer_phone, customer_email)
-            VALUES (%s, %s, %s)
-        """
-        self.context.db_manager.execute(sql_query, (customer_name, customer_phone, customer_email))
-        self.context.db_manager.commit()
+            sql = """INSERT INTO customer (customer_name, customer_phone, customer_email) VALUES (%s, %s, %s)"""
+            self.context.db_manager.execute(sql, (name, phone, email))
+            self.context.db_manager.commit()
 
-        QMessageBox.information(self, "Thông báo", "Dữ liệu khách hàng đã được lưu thành công!")
+            QMessageBox.information(self, "Thành công", "Khách hàng đã được thêm!")
+            self.context.db_manager.log_action(self.context.staff_id, f"Thêm khách hàng: {name}")
+            self.load_customer_data()
+        except Exception as e:
+            QMessageBox.warning(self, "Lỗi", f"Không thể lưu khách hàng: {e}")
 
+    def handle_cell_click(self, row, column):
+        if column == 1 or column == 4:
+            item = self.tableWidget.item(row, column)
+            customer_id = item.data(Qt.ItemDataRole.UserRole)
+            self.show_customer_detail(customer_id)
 
-    def goto_staff(self):
-        self.staff_window = Staff_w(self.context)
-        self.staff_window.show()
-        self.hide()
+    def show_customer_detail(self, customer_id):
+        dialog = CustomerInformation_w(self.context, customer_id)
+        dialog.exec()
+
+class CustomerInformation_w(QDialog):
+    def __init__(self, context, customer_id):
+        super(CustomerInformation_w, self).__init__()
+        self.context = context
+        self.customer_id_value = customer_id
+
+        ui_path = os.path.join(current_dir, 'ui', 'customer_information.ui')
+        uic.loadUi(ui_path, self)
+        self.setWindowTitle("Customer Details")
+        self.setWindowIcon(QtGui.QIcon(icon_path))
+        self.edit_mode = False
+
+        self.pushButton.clicked.connect(self.toggle_edit_mode)
+        self.load_customer_data(customer_id)
+
+    def load_customer_data(self, customer_id):
+        try:
+            db = self.context.db_manager
+            sql = """SELECT customer_id, customer_name, customer_phone, customer_email FROM customer WHERE customer_id = %s"""
+            db.execute(sql, (customer_id,))
+            result = db.fetchone()
+
+            if result:
+                self.customer_id.setText(str(result[0]))
+                self.customer_name.setText(result[1])
+                self.customer_phone.setText(result[2])
+                self.customer_email.setText(result[3])
+                self.set_fields_editable(False)
+            else:
+                QMessageBox.warning(self, "Thông báo", "Không tìm thấy khách hàng.")
+        except Exception as e:
+            QMessageBox.warning(self, "Lỗi", f"Không thể tải dữ liệu: {e}")
+
+    def toggle_edit_mode(self):
+        self.edit_mode = not self.edit_mode
+        self.set_fields_editable(self.edit_mode)
+        self.pushButton.setText("💾 Save" if self.edit_mode else "Edit...")
+
+        if self.edit_mode:
+            self.original_data = {
+                "name": self.customer_name.text(),
+                "phone": self.customer_phone.text(),
+                "email": self.customer_email.text()
+            }
+            self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Cancel)
+            cancel_btn = self.buttonBox.button(QDialogButtonBox.StandardButton.Cancel)
+            if cancel_btn:
+                try:
+                    cancel_btn.clicked.disconnect()
+                except:
+                    pass
+                cancel_btn.clicked.connect(self.cancel_edit)
+        else:
+            self.save_customer_data()
+            self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Close)
+
+    def save_customer_data(self):
+        try:
+            sql = """UPDATE customer SET customer_name = %s, customer_phone = %s, customer_email = %s WHERE customer_id = %s"""
+            values = (
+                self.customer_name.text(),
+                self.customer_phone.text(),
+                self.customer_email.text(),
+                self.customer_id.text()
+            )
+            self.context.db_manager.execute(sql, values)
+            self.context.db_manager.commit()
+            QMessageBox.information(self, "Thành công", "Đã cập nhật khách hàng.")
+            self.context.db_manager.log_action(self.context.staff_id, f"Cập nhật khách hàng: {self.customer_id.text()}")
+        except Exception as e:
+            QMessageBox.warning(self, "Lỗi", f"Không thể cập nhật: {e}")
+
+    def cancel_edit(self):
+        self.customer_name.setText(self.original_data["name"])
+        self.customer_phone.setText(self.original_data["phone"])
+        self.customer_email.setText(self.original_data["email"])
+        self.set_fields_editable(False)
+        self.edit_mode = False
+        self.pushButton.setText("Edit...")
+        self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Close)
+        QMessageBox.information(self, "Đã hủy", "Chỉnh sửa đã được hủy.")
+
+    def set_fields_editable(self, editable):
+        self.customer_id.setReadOnly(True)
+        self.customer_name.setReadOnly(not editable)
+        self.customer_phone.setReadOnly(not editable)
+        self.customer_email.setReadOnly(not editable)
 
 # Staff Window - Done
 class Staff_w(QMainWindow):
@@ -940,29 +1071,136 @@ class Invoice_w(QMainWindow):
         super(Invoice_w, self).__init__()
         self.context = context
         ui_path = os.path.join(current_dir, 'ui', 'invoice.ui')
-        print(">>> invoice.ui path:", ui_path)
-        if not os.path.exists(ui_path):
-            raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
         uic.loadUi(ui_path, self)
         self.setWindowTitle("Invoice Management")
         self.setWindowIcon(QtGui.QIcon(icon_path))
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
-        self.actionSave.triggered.connect(self.save_invoice_data)
 
-    def save_invoice_data(self):
-        customer_id = int(self.comboBox_Customer_ID.currentText())
-        medicine_id = int(self.comboBox_Medicine_ID.currentText())
-        quantity = int(self.spinBox_Quantity.value())
-        total_cost = float(self.lineEdit_Total_Cost.text())
+        self.load_invoice_data()
+        self.tableWidget.cellClicked.connect(self.handle_cell_click)
 
-        sql_query = f"INSERT INTO invoices (customer_id, medicine_id, quantity, total_cost) VALUES ({customer_id}, {medicine_id}, {quantity}, {total_cost})"
-        self.context.cursor.execute(sql_query)
-        self.context.connection.commit()
+    def load_invoice_data(self):
+        try:
+            db = self.context.db_manager
+            sql = "SELECT invoice_id, customer_id, total_amount, created_at FROM invoice"
+            db.execute(sql)
+            results = db.fetchall()
+            self.tableWidget.setRowCount(len(results))
+            self.tableWidget.setColumnCount(4)
+            self.tableWidget.setHorizontalHeaderLabels(["Invoice ID", "Customer ID", "Total", "Created At"])
 
-    def goto_customer(self):
-        self.customer_window = Customer_w(self.context)
-        self.customer_window.show()
-        self.hide()
+            for row_idx, row_data in enumerate(results):
+                for col_idx, value in enumerate(row_data):
+                    item = QTableWidgetItem(str(value))
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    self.tableWidget.setItem(row_idx, col_idx, item)
+        except Exception as e:
+            QMessageBox.warning(self, "Lỗi", f"Không thể tải hóa đơn: {e}")
+
+    def handle_cell_click(self, row, column):
+        invoice_id_item = self.tableWidget.item(row, 0)
+        if invoice_id_item:
+            invoice_id = invoice_id_item.text()
+            self.detail_dialog = InvoiceInformation_w(self.context, invoice_id)
+            self.detail_dialog.exec()
+
+
+class InvoiceInformation_w(QDialog):
+    def __init__(self, context, invoice_id):
+        super(InvoiceInformation_w, self).__init__()
+        self.context = context
+        self.invoice_id = invoice_id
+        ui_path = os.path.join(current_dir, 'ui', 'invoice_information.ui')
+        uic.loadUi(ui_path, self)
+        self.setWindowTitle("Invoice Detail")
+        self.setWindowIcon(QtGui.QIcon(icon_path))
+
+        self.load_data()
+
+    def load_data(self):
+        try:
+            db = self.context.db_manager
+            sql = "SELECT * FROM invoice WHERE invoice_id = %s"
+            db.execute(sql, (self.invoice_id,))
+            result = db.fetchone()
+
+            if result:
+                self.lineEdit_invoice_id.setText(str(result[0]))
+                self.lineEdit_customer_id.setText(str(result[1]))
+                self.doubleSpinBox_total.setValue(result[2])
+                self.dateEdit_created.setDate(result[3].date())
+        except Exception as e:
+            QMessageBox.warning(self, "Lỗi", f"Lỗi khi tải thông tin hóa đơn: {e}")
+
+
+
+# Stock Window
+class Stock_w(QMainWindow):
+    def __init__(self, context):
+        super(Stock_w, self).__init__()
+        self.context = context
+        ui_path = os.path.join(current_dir, 'ui', 'stock.ui')
+        uic.loadUi(ui_path, self)
+        self.setWindowTitle("Stock Management")
+        self.setWindowIcon(QtGui.QIcon(icon_path))
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+
+        self.load_stock_data()
+        self.tableWidget.cellClicked.connect(self.handle_cell_click)
+
+    def load_stock_data(self):
+        try:
+            db = self.context.db_manager
+            sql = "SELECT stock_id, medicine_id, quantity, last_updated FROM stock"
+            db.execute(sql)
+            results = db.fetchall()
+            self.tableWidget.setRowCount(len(results))
+            self.tableWidget.setColumnCount(4)
+            self.tableWidget.setHorizontalHeaderLabels(["Stock ID", "Medicine ID", "Quantity", "Updated At"])
+
+            for row_idx, row_data in enumerate(results):
+                for col_idx, value in enumerate(row_data):
+                    item = QTableWidgetItem(str(value))
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    self.tableWidget.setItem(row_idx, col_idx, item)
+        except Exception as e:
+            QMessageBox.warning(self, "Lỗi", f"Không thể tải dữ liệu kho: {e}")
+
+    def handle_cell_click(self, row, column):
+        stock_id_item = self.tableWidget.item(row, 0)
+        if stock_id_item:
+            stock_id = stock_id_item.text()
+            self.detail_dialog = StockInformation_w(self.context, stock_id)
+            self.detail_dialog.exec()
+
+
+class StockInformation_w(QDialog):
+    def __init__(self, context, stock_id):
+        super(StockInformation_w, self).__init__()
+        self.context = context
+        self.stock_id = stock_id
+        ui_path = os.path.join(current_dir, 'ui', 'stock_information.ui')
+        uic.loadUi(ui_path, self)
+        self.setWindowTitle("Stock Detail")
+        self.setWindowIcon(QtGui.QIcon(icon_path))
+
+        self.load_data()
+
+    def load_data(self):
+        try:
+            db = self.context.db_manager
+            sql = "SELECT * FROM stock WHERE stock_id = %s"
+            db.execute(sql, (self.stock_id,))
+            result = db.fetchone()
+
+            if result:
+                self.lineEdit_stock_id.setText(str(result[0]))
+                self.lineEdit_medicine_id.setText(str(result[1]))
+                self.spinBox_quantity.setValue(result[2])
+                self.dateEdit_updated.setDate(result[3].date())
+        except Exception as e:
+            QMessageBox.warning(self, "Lỗi", f"Lỗi khi tải thông tin kho: {e}")
+
 
 # Logs Window
 class Logs_w(QMainWindow):
