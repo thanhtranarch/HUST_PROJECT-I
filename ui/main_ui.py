@@ -155,40 +155,40 @@ class Ui_MainWindow(object):
 
         self.gridLayout_3.addItem(self.horizontalSpacer, 3, 3, 1, 1)
 
-        self.invoice_daily = QGroupBox(self.centralwidget)
-        self.invoice_daily.setObjectName(u"invoice_daily")
-        self.gridLayout_2 = QGridLayout(self.invoice_daily)
+        self.invoice_daily_group = QGroupBox(self.centralwidget)
+        self.invoice_daily_group.setObjectName(u"invoice_daily_group")
+        self.gridLayout_2 = QGridLayout(self.invoice_daily_group)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.invoice_detail = QPushButton(self.invoice_daily)
+        self.invoice_detail = QPushButton(self.invoice_daily_group)
         self.invoice_detail.setObjectName(u"invoice_detail")
 
         self.gridLayout_2.addWidget(self.invoice_detail, 1, 0, 1, 1)
 
-        self.tableWidget = QTableWidget(self.invoice_daily)
-        if (self.tableWidget.columnCount() < 7):
-            self.tableWidget.setColumnCount(7)
+        self.invoice_daily = QTableWidget(self.invoice_daily_group)
+        if (self.invoice_daily.columnCount() < 7):
+            self.invoice_daily.setColumnCount(7)
         __qtablewidgetitem14 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(0, __qtablewidgetitem14)
+        self.invoice_daily.setHorizontalHeaderItem(0, __qtablewidgetitem14)
         __qtablewidgetitem15 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(1, __qtablewidgetitem15)
+        self.invoice_daily.setHorizontalHeaderItem(1, __qtablewidgetitem15)
         __qtablewidgetitem16 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(2, __qtablewidgetitem16)
+        self.invoice_daily.setHorizontalHeaderItem(2, __qtablewidgetitem16)
         __qtablewidgetitem17 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(3, __qtablewidgetitem17)
+        self.invoice_daily.setHorizontalHeaderItem(3, __qtablewidgetitem17)
         __qtablewidgetitem18 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(4, __qtablewidgetitem18)
+        self.invoice_daily.setHorizontalHeaderItem(4, __qtablewidgetitem18)
         __qtablewidgetitem19 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(5, __qtablewidgetitem19)
+        self.invoice_daily.setHorizontalHeaderItem(5, __qtablewidgetitem19)
         __qtablewidgetitem20 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(6, __qtablewidgetitem20)
-        self.tableWidget.setObjectName(u"tableWidget")
-        self.tableWidget.setRowCount(0)
-        self.tableWidget.horizontalHeader().setCascadingSectionResizes(True)
+        self.invoice_daily.setHorizontalHeaderItem(6, __qtablewidgetitem20)
+        self.invoice_daily.setObjectName(u"invoice_daily")
+        self.invoice_daily.setRowCount(0)
+        self.invoice_daily.horizontalHeader().setCascadingSectionResizes(True)
 
-        self.gridLayout_2.addWidget(self.tableWidget, 0, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.invoice_daily, 0, 0, 1, 1)
 
 
-        self.gridLayout_3.addWidget(self.invoice_daily, 0, 1, 1, 4)
+        self.gridLayout_3.addWidget(self.invoice_daily_group, 0, 1, 1, 4)
 
         self.horizontalSpacer_6 = QSpacerItem(20, 582, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
@@ -267,8 +267,8 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem6.setText(QCoreApplication.translate("MainWindow", u"Days Left", None));
         ___qtablewidgetitem7 = self.outdate_medicine.horizontalHeaderItem(7)
         ___qtablewidgetitem7.setText(QCoreApplication.translate("MainWindow", u"Status", None));
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u26a0\ufe0f: 60 ng\u00e0y ", None))
-        self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u2757:30 ng\u00e0y ", None))
+        self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u26a0\ufe0f: \u226460 ng\u00e0y ", None))
+        self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u2757:\u226430 ng\u00e0y ", None))
         ___qtablewidgetitem8 = self.stock_medicine.horizontalHeaderItem(0)
         ___qtablewidgetitem8.setText(QCoreApplication.translate("MainWindow", u"ID", None));
         ___qtablewidgetitem9 = self.stock_medicine.horizontalHeaderItem(1)
@@ -283,21 +283,21 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem13.setText(QCoreApplication.translate("MainWindow", u"Price", None));
         self.stock_detail.setText(QCoreApplication.translate("MainWindow", u"CHI TI\u1ebeT", None))
         self.invoice_create.setText(QCoreApplication.translate("MainWindow", u"T\u1ea0O H\u00d3A \u0110\u01a0N", None))
-        self.invoice_daily.setTitle(QCoreApplication.translate("MainWindow", u"DANH S\u00c1CH H\u00d3A \u0110\u01a0N TRONG NG\u00c0Y", None))
+        self.invoice_daily_group.setTitle(QCoreApplication.translate("MainWindow", u"DANH S\u00c1CH H\u00d3A \u0110\u01a0N TRONG NG\u00c0Y", None))
         self.invoice_detail.setText(QCoreApplication.translate("MainWindow", u"CHI TI\u1ebeT", None))
-        ___qtablewidgetitem14 = self.tableWidget.horizontalHeaderItem(0)
+        ___qtablewidgetitem14 = self.invoice_daily.horizontalHeaderItem(0)
         ___qtablewidgetitem14.setText(QCoreApplication.translate("MainWindow", u"Invoice ID", None));
-        ___qtablewidgetitem15 = self.tableWidget.horizontalHeaderItem(1)
+        ___qtablewidgetitem15 = self.invoice_daily.horizontalHeaderItem(1)
         ___qtablewidgetitem15.setText(QCoreApplication.translate("MainWindow", u"Time", None));
-        ___qtablewidgetitem16 = self.tableWidget.horizontalHeaderItem(2)
+        ___qtablewidgetitem16 = self.invoice_daily.horizontalHeaderItem(2)
         ___qtablewidgetitem16.setText(QCoreApplication.translate("MainWindow", u"Customer", None));
-        ___qtablewidgetitem17 = self.tableWidget.horizontalHeaderItem(3)
+        ___qtablewidgetitem17 = self.invoice_daily.horizontalHeaderItem(3)
         ___qtablewidgetitem17.setText(QCoreApplication.translate("MainWindow", u"Total Amount", None));
-        ___qtablewidgetitem18 = self.tableWidget.horizontalHeaderItem(4)
+        ___qtablewidgetitem18 = self.invoice_daily.horizontalHeaderItem(4)
         ___qtablewidgetitem18.setText(QCoreApplication.translate("MainWindow", u"Staff", None));
-        ___qtablewidgetitem19 = self.tableWidget.horizontalHeaderItem(5)
+        ___qtablewidgetitem19 = self.invoice_daily.horizontalHeaderItem(5)
         ___qtablewidgetitem19.setText(QCoreApplication.translate("MainWindow", u"Notes", None));
-        ___qtablewidgetitem20 = self.tableWidget.horizontalHeaderItem(6)
+        ___qtablewidgetitem20 = self.invoice_daily.horizontalHeaderItem(6)
         ___qtablewidgetitem20.setText(QCoreApplication.translate("MainWindow", u"Details", None));
         self.export_report.setText(QCoreApplication.translate("MainWindow", u"IN B\u00c1O C\u00c1O NG\u00c0Y", None))
         self.menuMaindashboard.setTitle("")

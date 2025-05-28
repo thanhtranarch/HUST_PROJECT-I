@@ -12,7 +12,7 @@ import MySQLdb as mysql_db
 import os
 import darkdetect
 import bcrypt 
-
+from export_reports import export_stock_report, export_invoice_report, export_expiry_warning_report
 
 # Connect to DataBase - Done
 class AppContext:
@@ -72,7 +72,18 @@ class Main_w(QMainWindow):
         self.load_outdate_warning()
         self.load_today_invoice()
 
-        seself.export_report.clicked.connect(self.show_report_dialog)
+
+        # Button click
+        self.export_report.clicked.connect(self.show_report_dialog)
+        self.stock_detail.clicked.connect(self.goto_medicine)
+        self.warning_detail.clicked.connect(self.goto_medicine)
+        self.invoice_detail.clicked.connect(self.goto_invoice)
+        self.invoice_create.clicked.connect(self.show_create_invoice)
+
+        # Sorting
+        self.outdate_medicine.setSortingEnabled(True)
+        self.stock_medicine.setSortingEnabled(True)
+        self.invoice_daily.setSortingEnabled(True)
 
     def load_stock_overview(self):
         db = self.context.db_manager
@@ -85,14 +96,17 @@ class Main_w(QMainWindow):
                 item = QTableWidgetItem(str(value))
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.stock_medicine.setItem(row, col, item)
+
+        self.stock_medicine.setColumnWidth(1, 200)  
+        self.stock_medicine.setColumnWidth(4, 200)
+
     def load_outdate_warning(self):
         db = self.context.db_manager
         sql = """SELECT medicine_id, medicine_name, stock_quantity, unit, batch_number, expiration_date,
                 DATEDIFF(expiration_date, NOW()) AS days_left,
                 CASE
-                  WHEN DATEDIFF(expiration_date, NOW()) <= 30 THEN '⚠ Gấp'
-                  WHEN DATEDIFF(expiration_date, NOW()) <= 60 THEN '⏳ Sắp hết hạn'
-                  ELSE '✅'
+                  WHEN DATEDIFF(expiration_date, NOW()) <= 30 THEN '❗'
+                  WHEN DATEDIFF(expiration_date, NOW()) <= 60 THEN '⚠'
                 END AS status
                 FROM medicine
                 WHERE DATEDIFF(expiration_date, NOW()) <= 60
@@ -106,13 +120,16 @@ class Main_w(QMainWindow):
                 item = QTableWidgetItem(str(value))
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.outdate_medicine.setItem(row, col, item)
+        self.outdate_medicine.setColumnWidth(1,200)
+        self.outdate_medicine.setColumnWidth(5,150)
+        self.outdate_medicine.setColumnWidth(7,50)
     def load_today_invoice(self):
         db = self.context.db_manager
         sql = """SELECT invoice_id, invoice_date, customer_id, total_amount, staff_id, payment_status
                  FROM invoice WHERE DATE(invoice_date) = CURDATE()"""
         db.execute(sql)
         results = db.fetchall()
-        self.tableWidget.setRowCount(len(results))
+        self.invoice_daily.setRowCount(len(results))
         for row, data in enumerate(results):
             for col, value in enumerate(data):
                 item = QTableWidgetItem(str(value))
@@ -168,19 +185,26 @@ class Main_w(QMainWindow):
         dialog = ReportDialog_w(self.context)
         dialog.exec()
 
+    def show_create_invoice(self):
+        dialog = CreateInvoiceDialog_w(self.context)
+        dialog.exec()
+
     def update_status_info(self):
         now = datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
         status = f"👤 {self.staff_id}   | 🕒 {now}   | ✅ Database Connected"
         self.status_label.setText(status)
-# Report
+
+# ReportDialog        
 class ReportDialog_w(QDialog):
-    def __init__(self, context):
-        super().__init__()
+    def __init__(self, context, parent=None):
+        super().__init__(parent)
         self.context = context
         self.setWindowTitle("Xuất báo cáo")
+        self.setWindowIcon(QtGui.QIcon(icon_path))
         self.setFixedSize(300, 200)
 
         layout = QVBoxLayout()
+
         self.combo = QComboBox()
         self.combo.addItems([
             "Tổng tồn kho",
@@ -203,22 +227,43 @@ class ReportDialog_w(QDialog):
         self.setLayout(layout)
 
     def export_report(self):
-        from datetime import datetime
         report_type = self.combo.currentText()
         selected_date = self.date_edit.date().toString("yyyy-MM-dd")
 
+        # Gợi ý tên file dựa trên loại báo cáo
+        if report_type == "Tổng tồn kho":
+            default_name = f"report_stock_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        elif report_type == "Hóa đơn trong ngày":
+            default_name = f"report_invoice_{selected_date}.pdf"
+        elif report_type == "Thuốc sắp hết hạn":
+            default_name = f"report_expiring_meds_{datetime.now().strftime('%Y%m%d')}.pdf"
+        else:
+            default_name = "report.pdf"
+
+        filepath, _ = QFileDialog.getSaveFileName(self, "Chọn vị trí lưu báo cáo", default_name, "PDF Files (*.pdf)")
+        if not filepath:
+            return
+
         try:
+            # Import các hàm export bên ngoài, hoặc import ở đầu file chính
+            from export_reports import (
+                export_stock_report, export_invoice_report, export_expiry_warning_report
+            )
+
             if report_type == "Tổng tồn kho":
-                file_path = export_stock_report(self.context)
+                file_path = export_stock_report(self.context, filepath)
+                log_content = f"Xuất báo cáo tồn kho: {file_path}"
             elif report_type == "Hóa đơn trong ngày":
-                file_path = export_invoice_report(self.context, selected_date)
+                file_path = export_invoice_report(self.context, selected_date, filepath)
+                log_content = f"Xuất báo cáo hóa đơn ngày {selected_date}: {file_path}"
             elif report_type == "Thuốc sắp hết hạn":
-                file_path = export_expiry_warning_report(self.context)
+                file_path = export_expiry_warning_report(self.context, filepath)
+                log_content = f"Xuất báo cáo thuốc sắp hết hạn: {file_path}"
+            self.context.db_manager.log_action(self.context.staff_id, log_content)
             QMessageBox.information(self, "Thành công", f"Đã xuất file:\n{file_path}")
             self.close()
         except Exception as e:
             QMessageBox.critical(self, "Lỗi", f"Không thể xuất báo cáo: {e}")
-
 
 # Supplier Window
 class Supplier_w(QMainWindow):
@@ -549,6 +594,11 @@ class Customer_w(QMainWindow):
     def show_customer_detail(self, customer_id):
         dialog = CustomerInformation_w(self.context, customer_id)
         dialog.exec()
+
+    def goto_main(self):
+        self.main_window = Main_w(self.context)
+        self.main_window.show()
+        self.hide()
 
 class CustomerInformation_w(QDialog):
     def __init__(self, context, customer_id):
@@ -914,6 +964,7 @@ class Medicine_w(QMainWindow):
         self.hide()
 
 class MedicineInformation_w(QDialog):
+    data_updated = pyqtSignal()
     """Dialog window to display detailed information about a medicine."""
     def __init__(self, context, medicine_id):
         super(MedicineInformation_w, self).__init__()
@@ -936,7 +987,7 @@ class MedicineInformation_w(QDialog):
         self.deleteButton.setEnabled(False)
         # Load data
         self.load_medicine_data(self.medicine_id_value)
-        data_updated = pyqtSignal()
+
 
     def load_medicine_data(self, medicine_id_value):
         try:
@@ -1093,7 +1144,7 @@ class MedicineInformation_w(QDialog):
 
         if reply == QMessageBox.StandardButton.Yes:
             self.delete_medicine()
-            self.context.db_manager.log_action(self.context.staff_id, f"Xóa thuốc: {medicine_id}")
+            self.context.db_manager.log_action(self.context.staff_id, f"Xóa thuốc: {self.medicine_id.text()}")
 
 
     def delete_medicine(self):
@@ -1180,7 +1231,7 @@ class Invoice_w(QMainWindow):
 
         self.load_invoice_data()
         self.tableWidget.cellClicked.connect(self.handle_cell_click)
-
+        self.back_button.clicked.connect(self.goto_main)
     def load_invoice_data(self):
         try:
             db = self.context.db_manager
@@ -1205,7 +1256,10 @@ class Invoice_w(QMainWindow):
             invoice_id = invoice_id_item.text()
             self.detail_dialog = InvoiceInformation_w(self.context, invoice_id)
             self.detail_dialog.exec()
-
+    def goto_main(self):
+        self.main_window = Main_w(self.context)
+        self.main_window.show()
+        self.hide()
 
 class InvoiceInformation_w(QDialog):
     def __init__(self, context, invoice_id):
@@ -1234,6 +1288,226 @@ class InvoiceInformation_w(QDialog):
         except Exception as e:
             QMessageBox.warning(self, "Lỗi", f"Lỗi khi tải thông tin hóa đơn: {e}")
 
+class CreateInvoiceDialog_w(QDialog):
+    def __init__(self, context, invoice_id=None):
+        super().__init__()
+        self.context = context
+        self.invoice_id = invoice_id
+        self.customer_id = None
+
+        # Load UI
+        ui_path = os.path.join(current_dir, 'ui', 'create_invoice.ui')
+        if not os.path.exists(ui_path):
+            raise FileNotFoundError(f"Không tìm thấy UI file: {ui_path}")
+        uic.loadUi(ui_path, self)
+
+        # Kết nối sự kiện
+        self.customer_phone.editingFinished.connect(self.lookup_customer)
+        self.add_medicine_2.clicked.connect(self.create_new_customer)
+        self.save_button.clicked.connect(self.save_invoice)
+        self.cancel_button.clicked.connect(self.reject)  # Đóng dialog
+        self.add_medicine.clicked.connect(self.show_add_medicine_dialog)
+        
+        if self.invoice_id:
+            self.load_invoice_detail()
+            self.set_view_mode()
+        else:
+            # Chế độ tạo mới: điền mặc định ngày, nhân viên
+            self.invoice_date.setDateTime(QtCore.QDateTime.currentDateTime())
+            self.staff_name.setText(self.context.staff_id)
+            # Xóa trắng bảng thuốc
+            self.buy_list.setRowCount(0)
+            self.sum_money.setText("0")
+
+    def show_add_medicine_dialog(self):
+        # Có thể mở 1 dialog chọn thuốc hoặc cho nhập trực tiếp
+        # Ví dụ đơn giản: chọn từ combobox hoặc table, hoặc dialog MedicineSelector_w (tùy bạn build)
+        # Giả sử bạn làm dialog chọn, sau khi chọn xong trả về các trường dưới đây:
+
+        # Ví dụ (nên xây dựng dialog riêng để chọn nhanh)
+        med_name = "Tên thuốc"
+        unit = "Viên"  # hoặc lấy từ DB
+        sale_price = 10000
+        stock_quantity = 50
+        quantity = 1  # Lấy giá trị nhập từ user
+        total_price = sale_price * quantity
+
+        # Thêm dòng mới vào bảng buy_list
+        row = self.buy_list.rowCount()
+        self.buy_list.insertRow(row)
+        self.buy_list.setItem(row, 0, QTableWidgetItem(med_name))
+        self.buy_list.setItem(row, 1, QTableWidgetItem(unit))
+        self.buy_list.setItem(row, 2, QTableWidgetItem(str(sale_price)))
+        self.buy_list.setItem(row, 3, QTableWidgetItem(str(stock_quantity)))
+        self.buy_list.setItem(row, 4, QTableWidgetItem(str(quantity)))
+        self.buy_list.setItem(row, 5, QTableWidgetItem(str(total_price)))
+        if quantity > stock_quantity:
+            QMessageBox.warning(self, "Lỗi", "Số lượng mua vượt quá số lượng tồn kho!")
+            return
+
+
+
+        # Tạo nút xóa cho cột cuối
+        btn_del = QPushButton("Xóa")
+        btn_del.clicked.connect(lambda _, r=row: self.handle_delete_medicine(r))
+        self.buy_list.setCellWidget(row, 6, btn_del)
+
+        self.update_total()
+    def handle_delete_medicine(self, row):
+        self.buy_list.removeRow(row)
+        self.update_total()
+
+
+    def lookup_customer(self):
+        phone = self.customer_phone.text().strip()
+        db = self.context.db_manager
+        sql = "SELECT customer_id, customer_name FROM customer WHERE customer_phone = %s"
+        db.execute(sql, (phone,))
+        result = db.fetchone()
+        if result:
+            self.customer_id, name = result
+            self.customer_phone.setStyleSheet("color: green;")
+            if not hasattr(self, "customer_name_label"):
+                self.customer_name_label = QLabel(self)
+                self.invoice_information.layout().addWidget(self.customer_name_label)
+            self.customer_name_label.setText(f"Khách hàng: {name} ({phone})")
+        else:
+            self.customer_id = None
+            self.customer_phone.setStyleSheet("color: red;")
+            if not hasattr(self, "customer_name_label"):
+                self.customer_name_label = QLabel(self)
+                self.invoice_information.layout().addWidget(self.customer_name_label)
+            self.customer_name_label.setText("Không tìm thấy khách hàng này!")
+
+    def create_new_customer(self):
+        # Mở dialog thêm khách hàng mới (giả sử bạn đã có class CustomerInformationAdd_w)
+        dialog = CustomerInformationAdd_w(self.context)
+        dialog.exec()
+        self.lookup_customer()
+
+    def save_invoice(self):
+        db = self.context.db_manager
+        staff_id = self.context.staff_id
+        invoice_date = self.invoice_date.date().toString("yyyy-MM-dd")
+        customer_phone = self.customer_phone.text().strip()
+        sum_money = self.sum_money.text().strip()
+
+        # Tìm customer_id
+        db.execute("SELECT customer_id FROM customer WHERE customer_phone = %s", (customer_phone,))
+        result = db.fetchone()
+        if result:
+            customer_id = result[0]
+        else:
+            QMessageBox.warning(self, "Lỗi", "Không tìm thấy khách hàng! Vui lòng thêm mới.")
+            return
+
+        # Thêm hóa đơn
+        sql_invoice = """
+            INSERT INTO invoice (invoice_date, customer_id, staff_id, total_amount)
+            VALUES (%s, %s, %s, %s)
+        """
+        db.execute(sql_invoice, (invoice_date, customer_id, staff_id, sum_money))
+        db.commit()
+
+        db.execute("SELECT LAST_INSERT_ID()")
+        invoice_id = db.fetchone()[0]
+        db.execute("UPDATE medicine SET stock_quantity = stock_quantity - %s WHERE medicine_id = %s", (quantity, medicine_id))
+        # Lưu từng dòng thuốc vào invoice_detail
+        for row in range(self.buy_list.rowCount()):
+            med_name_item = self.buy_list.item(row, 0)
+            quantity_item = self.buy_list.item(row, 4)
+            sale_price_item = self.buy_list.item(row, 2)
+            total_price_item = self.buy_list.item(row, 5)
+            if not med_name_item or not quantity_item:
+                continue
+            med_name = med_name_item.text()
+            quantity = int(quantity_item.text())
+            sale_price = float(sale_price_item.text())
+            total_price = float(total_price_item.text())
+            # Lấy medicine_id
+            db.execute("SELECT medicine_id FROM medicine WHERE medicine_name = %s", (med_name,))
+            med_res = db.fetchone()
+            if not med_res:
+                continue
+            medicine_id = med_res[0]
+            sql_detail = """
+                INSERT INTO invoice_detail (invoice_id, medicine_id, quantity, sale_price, total_price)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            db.execute(sql_detail, (invoice_id, medicine_id, quantity, sale_price, total_price))
+        db.commit()
+
+        db.log_action(staff_id, f"Tạo hóa đơn mới: {invoice_id}")
+        QMessageBox.information(self, "Thành công", "Đã lưu hóa đơn thành công!")
+        self.accept()  # Đóng dialog
+
+    def load_invoice_detail(self):
+        db = self.context.db_manager
+        sql = "SELECT invoice_id, invoice_date, staff_id, customer_id, total_amount FROM invoice WHERE invoice_id = %s"
+        db.execute(sql, (self.invoice_id,))
+        result = db.fetchone()
+        if result:
+            invoice_id, invoice_date, staff_id, customer_id, total_amount = result
+            self.invoice_id.setText(str(invoice_id))
+            self.invoice_date.setDate(invoice_date.date())
+            self.staff_name.setText(staff_id)
+            db.execute("SELECT customer_name, customer_phone FROM customer WHERE customer_id = %s", (customer_id,))
+            cus = db.fetchone()
+            if cus:
+                name, phone = cus
+                self.customer_phone.setText(phone)
+                if not hasattr(self, "customer_name_label"):
+                    self.customer_name_label = QLabel(self)
+                    self.invoice_information.layout().addWidget(self.customer_name_label)
+                self.customer_name_label.setText(f"Khách hàng: {name} ({phone})")
+            self.sum_money.setText(str(total_amount))
+            self.load_invoice_items()
+            # Log xem chi tiết
+            if hasattr(self.context, 'staff_id'):
+                db.log_action(self.context.staff_id, f"Xem chi tiết hóa đơn: {self.invoice_id}")
+
+    def load_invoice_items(self):
+        db = self.context.db_manager
+        sql = """SELECT m.medicine_name, m.unit, d.sale_price, m.stock_quantity, d.quantity, d.total_price
+                 FROM invoice_detail d
+                 JOIN medicine m ON d.medicine_id = m.medicine_id
+                 WHERE d.invoice_id = %s"""
+        db.execute(sql, (self.invoice_id,))
+        items = db.fetchall()
+        table = self.buy_list
+        table.setRowCount(len(items))
+        for i, row in enumerate(items):
+            for j, val in enumerate(row):
+                item = QTableWidgetItem(str(val))
+                item.setFlags(Qt.ItemFlag.ItemIsEnabled)  # Chỉ xem, không sửa
+                table.setItem(i, j, item)
+
+    def set_view_mode(self):
+        # Disable các input nếu chỉ xem hóa đơn
+        self.invoice_id.setReadOnly(True)
+        self.invoice_date.setEnabled(False)
+        self.staff_name.setReadOnly(True)
+        self.customer_phone.setReadOnly(True)
+        self.sum_money.setReadOnly(True)
+        self.add_medicine.setEnabled(False)
+        self.add_medicine_2.setEnabled(False)
+        self.save_button.setEnabled(False)
+        for row in range(self.buy_list.rowCount()):
+            for col in range(self.buy_list.columnCount()):
+                item = self.buy_list.item(row, col)
+                if item:
+                    item.setFlags(Qt.ItemFlag.ItemIsEnabled)admin
+
+    def update_total(self):
+        total = 0
+        for row in range(self.buy_list.rowCount()):
+            total_price_item = self.buy_list.item(row, 5)
+            if total_price_item:
+                try:
+                    total += float(total_price_item.text())
+                except:
+                    pass
+        self.sum_money.setText(str(total))
 
 
 # Stock Window
@@ -1249,7 +1523,7 @@ class Stock_w(QMainWindow):
 
         self.load_stock_data()
         self.tableWidget.cellClicked.connect(self.handle_cell_click)
-
+        self.back_button.clicked.connect(self.goto_main)
     def load_stock_data(self):
         try:
             db = self.context.db_manager
@@ -1274,7 +1548,10 @@ class Stock_w(QMainWindow):
             stock_id = stock_id_item.text()
             self.detail_dialog = StockInformation_w(self.context, stock_id)
             self.detail_dialog.exec()
-
+    def goto_main(self):
+        self.main_window = Main_w(self.context)
+        self.main_window.show()
+        self.hide()
 
 class StockInformation_w(QDialog):
     def __init__(self, context, stock_id):
@@ -1317,12 +1594,13 @@ class Logs_w(QMainWindow):
         self.setWindowTitle("Logs Management")
         self.setWindowIcon(QtGui.QIcon(icon_path))
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
-           # Load initial data
+        # Load initial data
         self.load_log_data()
 
         # Connect signals
         self.tableWidget.setSortingEnabled(True)
         self.search_input.textChanged.connect(self.search_logs)
+        self.back_button.clicked.connect(self.goto_main)
 
     def load_log_data(self):
         try:
@@ -1363,7 +1641,10 @@ class Logs_w(QMainWindow):
                     visible = True
                     break
             self.tableWidget.setRowHidden(row, not visible)
-
+    def goto_main(self):
+        self.main_window = Main_w(self.context)
+        self.main_window.show()
+        self.hide()
 
 # Login Window - Done
 class Login_w(QDialog):
@@ -1458,10 +1739,6 @@ class Login_w(QDialog):
         icon_path = os.path.join(current_dir, "icon", "eye_closed.png")
         self.toggle_pw_button.setIcon(QIcon(icon_path))
 
-
-
-
-
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
             self.login()
@@ -1550,57 +1827,3 @@ if __name__ == '__main__':
     login_window = Login_w(context)
     login_window.show()
     sys.exit(app.exec())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

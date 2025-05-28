@@ -119,7 +119,7 @@
              </font>
             </property>
             <property name="text">
-             <string>⚠️: 60 ngày </string>
+             <string>⚠️: ≤60 ngày </string>
             </property>
            </widget>
           </item>
@@ -132,7 +132,7 @@
              </font>
             </property>
             <property name="text">
-             <string>❗:30 ngày </string>
+             <string>❗:≤30 ngày </string>
             </property>
            </widget>
           </item>
@@ -222,7 +222,7 @@
      </spacer>
     </item>
     <item row="0" column="1" colspan="4">
-     <widget class="QGroupBox" name="invoice_daily">
+     <widget class="QGroupBox" name="invoice_daily_group">
       <property name="title">
        <string>DANH SÁCH HÓA ĐƠN TRONG NGÀY</string>
       </property>
@@ -235,7 +235,7 @@
         </widget>
        </item>
        <item row="0" column="0">
-        <widget class="QTableWidget" name="tableWidget">
+        <widget class="QTableWidget" name="invoice_daily">
          <property name="rowCount">
           <number>0</number>
          </property>
@@ -342,7 +342,7 @@
    </property>
    <widget class="QMenu" name="menuMaindashboard">
     <property name="title">
-     <string> </string>
+     <string/>
     </property>
    </widget>
    <widget class="QMenu" name="menuGeneral_Management">

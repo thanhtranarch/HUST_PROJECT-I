@@ -1,12 +1,20 @@
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from datetime import datetime
 import os
 
-def export_stock_report(context):
-    filename = f"report_stock_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-    filepath = os.path.join("exports", filename)
-    os.makedirs("exports", exist_ok=True)
+# Đăng ký font Arial (chỉ cần làm 1 lần cho mỗi file/hàm)
+font_path = os.path.join("fonts", "Arial.ttf")
+pdfmetrics.registerFont(TTFont("ArialUnicode", font_path))
+
+def export_stock_report(context, filepath=None):
+    if filepath is None:
+        filename = f"report_stock_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        folder = "exports"
+        os.makedirs(folder, exist_ok=True)
+        filepath = os.path.join(folder, filename)
 
     db = context.db_manager
     sql = """SELECT medicine_name, unit, stock_quantity, batch_number, sale_price FROM medicine"""
@@ -14,10 +22,10 @@ def export_stock_report(context):
     results = db.fetchall()
 
     c = canvas.Canvas(filepath, pagesize=A4)
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, 800, "📦 BÁO CÁO TỒN KHO")
+    c.setFont("ArialUnicode", 14)
+    c.drawString(50, 800, "BÁO CÁO TỒN KHO")
 
-    c.setFont("Helvetica", 10)
+    c.setFont("ArialUnicode", 10)
     y = 780
     headers = ["Tên thuốc", "Đơn vị", "Tồn kho", "Lô", "Giá bán"]
     for i, header in enumerate(headers):
@@ -28,6 +36,7 @@ def export_stock_report(context):
         if y < 50:
             c.showPage()
             y = 800
+            c.setFont("ArialUnicode", 10)
         for i, value in enumerate(row):
             c.drawString(50 + i * 100, y, str(value))
         y -= 20
@@ -35,10 +44,12 @@ def export_stock_report(context):
     c.save()
     return filepath
 
-def export_invoice_report(context, date):
-    filename = f"report_invoice_{date}.pdf"
-    filepath = os.path.join("exports", filename)
-    os.makedirs("exports", exist_ok=True)
+def export_invoice_report(context, date, filepath=None):
+    if filepath is None:
+        filename = f"report_invoice_{date}.pdf"
+        folder = "exports"
+        os.makedirs(folder, exist_ok=True)
+        filepath = os.path.join(folder, filename)
 
     db = context.db_manager
     sql = """SELECT invoice_id, invoice_date, customer_id, total_amount, staff_id, payment_status 
@@ -47,10 +58,10 @@ def export_invoice_report(context, date):
     results = db.fetchall()
 
     c = canvas.Canvas(filepath, pagesize=A4)
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, 800, f"🧾 BÁO CÁO HÓA ĐƠN NGÀY {date}")
+    c.setFont("ArialUnicode", 14)
+    c.drawString(50, 800, f"BÁO CÁO HÓA ĐƠN NGÀY {date}")
 
-    c.setFont("Helvetica", 10)
+    c.setFont("ArialUnicode", 10)
     y = 780
     headers = ["ID", "Thời gian", "Khách", "Tổng", "Nhân viên", "Trạng thái"]
     for i, header in enumerate(headers):
@@ -61,6 +72,7 @@ def export_invoice_report(context, date):
         if y < 50:
             c.showPage()
             y = 800
+            c.setFont("ArialUnicode", 10)
         for i, value in enumerate(row):
             c.drawString(50 + i * 80, y, str(value))
         y -= 20
@@ -68,10 +80,17 @@ def export_invoice_report(context, date):
     c.save()
     return filepath
 
-def export_expiry_warning_report(context):
-    filename = f"report_expiring_meds_{datetime.now().strftime('%Y%m%d')}.pdf"
-    filepath = os.path.join("exports", filename)
-    os.makedirs("exports", exist_ok=True)
+def export_expiry_warning_report(context, filepath=None):
+    if filepath is None:
+        filename = f"report_expiring_meds_{datetime.now().strftime('%Y%m%d')}.pdf"
+        folder = "exports"
+        os.makedirs(folder, exist_ok=True)
+        filepath = os.path.join(folder, filename)
+
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    font_path = os.path.join("fonts", "Arial.ttf")
+    pdfmetrics.registerFont(TTFont("ArialUnicode", font_path))
 
     db = context.db_manager
     sql = """
@@ -85,22 +104,27 @@ def export_expiry_warning_report(context):
     results = db.fetchall()
 
     c = canvas.Canvas(filepath, pagesize=A4)
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, 800, "⏰ BÁO CÁO THUỐC SẮP HẾT HẠN")
+    c.setFont("ArialUnicode", 14)
+    c.drawString(50, 800, "BÁO CÁO THUỐC SẮP HẾT HẠN")
 
-    c.setFont("Helvetica", 10)
+    c.setFont("ArialUnicode", 10)
     y = 780
+    col_x = [50, 150, 200, 270, 370, 500]
     headers = ["Tên thuốc", "SL", "Đơn vị", "Lô", "Hạn dùng", "Còn lại"]
     for i, header in enumerate(headers):
-        c.drawString(50 + i * 80, y, header)
+        c.drawString(col_x[i], y, header)
 
     y -= 20
     for row in results:
         if y < 50:
             c.showPage()
             y = 800
+            c.setFont("ArialUnicode", 10)
+            for i, header in enumerate(headers):
+                c.drawString(col_x[i], y, header)
+            y -= 20
         for i, value in enumerate(row):
-            c.drawString(50 + i * 80, y, str(value))
+            c.drawString(col_x[i], y, str(value))
         y -= 20
 
     c.save()
