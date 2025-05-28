@@ -134,7 +134,7 @@ SQL script mẫu: `medimanager.sql`
 
 **Trần Tiến Thạnh**  
 MSSV: 20239253  
-Đại học Bách khoa Hà Nội – Môn: Nhập môn Công nghệ phần mềm
+Đại học Bách khoa Hà Nội – Môn: PROJECT I
   
 
 
