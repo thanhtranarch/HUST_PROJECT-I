@@ -72,6 +72,8 @@ class Main_w(QMainWindow):
         self.load_outdate_warning()
         self.load_today_invoice()
 
+        seself.export_report.clicked.connect(self.show_report_dialog)
+
     def load_stock_overview(self):
         db = self.context.db_manager
         sql = """SELECT medicine_id, medicine_name, unit, stock_quantity, batch_number, sale_price FROM medicine"""
@@ -162,10 +164,60 @@ class Main_w(QMainWindow):
         self.logs_window.show()
         self.hide()
 
+    def show_report_dialog(self):
+        dialog = ReportDialog_w(self.context)
+        dialog.exec()
+
     def update_status_info(self):
         now = datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
         status = f"👤 {self.staff_id}   | 🕒 {now}   | ✅ Database Connected"
         self.status_label.setText(status)
+# Report
+class ReportDialog_w(QDialog):
+    def __init__(self, context):
+        super().__init__()
+        self.context = context
+        self.setWindowTitle("Xuất báo cáo")
+        self.setFixedSize(300, 200)
+
+        layout = QVBoxLayout()
+        self.combo = QComboBox()
+        self.combo.addItems([
+            "Tổng tồn kho",
+            "Hóa đơn trong ngày",
+            "Thuốc sắp hết hạn"
+        ])
+
+        self.date_edit = QDateEdit()
+        self.date_edit.setDate(QDate.currentDate())
+        self.date_edit.setCalendarPopup(True)
+
+        self.export_btn = QPushButton("Xuất PDF")
+        self.export_btn.clicked.connect(self.export_report)
+
+        layout.addWidget(QLabel("Chọn loại báo cáo:"))
+        layout.addWidget(self.combo)
+        layout.addWidget(QLabel("Chọn ngày (với hóa đơn):"))
+        layout.addWidget(self.date_edit)
+        layout.addWidget(self.export_btn)
+        self.setLayout(layout)
+
+    def export_report(self):
+        from datetime import datetime
+        report_type = self.combo.currentText()
+        selected_date = self.date_edit.date().toString("yyyy-MM-dd")
+
+        try:
+            if report_type == "Tổng tồn kho":
+                file_path = export_stock_report(self.context)
+            elif report_type == "Hóa đơn trong ngày":
+                file_path = export_invoice_report(self.context, selected_date)
+            elif report_type == "Thuốc sắp hết hạn":
+                file_path = export_expiry_warning_report(self.context)
+            QMessageBox.information(self, "Thành công", f"Đã xuất file:\n{file_path}")
+            self.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể xuất báo cáo: {e}")
 
 
 # Supplier Window
