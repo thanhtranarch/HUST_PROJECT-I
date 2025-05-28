@@ -1798,38 +1798,33 @@ class CreateStockDialog_w(QDialog):
         self.setWindowTitle("Tạo phiếu nhập kho")
         self.setWindowIcon(QtGui.QIcon(icon_path))
 
-        # Đặt ngày mặc định là hôm nay
+        # Thiết lập thông tin mặc định
         self.stock_date.setDate(QDate.currentDate())
-
         self.staff_name.setText(str(self.context.staff_id))
         self.staff_name.setReadOnly(True)
         self.stock_id.setReadOnly(True)
         self.stock_id.setPlaceholderText("Auto")
 
+        # Load danh mục
         self.load_supplier_list()
         self.load_medicine_name_list()
         self.load_payment_methods()
 
+        # Kết nối sự kiện
         self.save_button.clicked.connect(self.save_stock)
         self.cancel_button.clicked.connect(self.reject)
         self.add_medicine.clicked.connect(self.add_row)
         self.add_new_medicine.clicked.connect(self.open_add_medicine_dialog)
 
+        # Thiết lập bảng nhập thuốc
         self.buy_list.setRowCount(0)
         self.buy_list.setColumnCount(7)
         self.buy_list.setHorizontalHeaderLabels([
             "Tên thuốc", "Giá nhập", "Giá bán", "Số lượng", "Số lô", "Hạn dùng", "Xóa"
         ])
-        self.buy_list.setColumnWidth(0, 240)
-        self.buy_list.setColumnWidth(1, 100)
-        self.buy_list.setColumnWidth(2, 100)
-        self.buy_list.setColumnWidth(3, 80)
-        self.buy_list.setColumnWidth(4, 100)
-        self.buy_list.setColumnWidth(5, 120)
-        self.buy_list.setColumnWidth(6, 50)
-
         self.buy_list.cellChanged.connect(self.update_sum_money)
 
+    # ========== LOAD DANH MỤC ==========
     def load_supplier_list(self):
         db = self.context.db_manager
         sql = "SELECT supplier_id, supplier_name FROM supplier"
@@ -1859,63 +1854,54 @@ class CreateStockDialog_w(QDialog):
         results = db.fetchall()
         self.medicine_names = [row[0] for row in results] if results else []
 
+    # ========== HÀM TẠO/XÓA DÒNG NHẬP THUỐC ==========
     def add_row(self):
         row = self.buy_list.rowCount()
         self.buy_list.insertRow(row)
+        # Cột 0: Tên thuốc
         combo = QComboBox()
         combo.setEditable(True)
         combo.addItems(self.medicine_names)
         self.buy_list.setCellWidget(row, 0, combo)
+        # Cột 1: Giá nhập
         spin_price = QDoubleSpinBox()
         spin_price.setMinimum(0)
         spin_price.setMaximum(1_000_000_000)
         spin_price.setDecimals(2)
         spin_price.valueChanged.connect(lambda _: self.update_sale_price(row))
         self.buy_list.setCellWidget(row, 1, spin_price)
+        # Cột 2: Giá bán (readonly)
         sale_item = QTableWidgetItem("")
         sale_item.setFlags(sale_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
         self.buy_list.setItem(row, 2, sale_item)
+        # Cột 3: Số lượng
         spin_quantity = QSpinBox()
         spin_quantity.setMinimum(1)
         spin_quantity.valueChanged.connect(lambda _: self.update_sum_money())
         self.buy_list.setCellWidget(row, 3, spin_quantity)
+        # Cột 4: Số lô
         batch_item = QTableWidgetItem("")
         self.buy_list.setItem(row, 4, batch_item)
+        # Cột 5: Hạn dùng
         date_exp = QDateEdit()
         date_exp.setCalendarPopup(True)
         date_exp.setDate(QDate.currentDate())
         self.buy_list.setCellWidget(row, 5, date_exp)
+        # Cột 6: Xóa dòng
         del_btn = QPushButton("X")
         del_btn.clicked.connect(lambda _, r=row: self.remove_row(r))
         self.buy_list.setCellWidget(row, 6, del_btn)
 
-    def update_sale_price(self, row):
-        spin_price = self.buy_list.cellWidget(row, 1)
-        sale_item = self.buy_list.item(row, 2)
-        if spin_price and sale_item:
-            price = spin_price.value()
-            sale_price = round(price * 1.2, 2)
-            sale_item.setText(str(sale_price))
-            self.update_sum_money()
-
     def remove_row(self, row):
         self.buy_list.removeRow(row)
         self.update_sum_money()
-
-    def update_sum_money(self):
-        total = 0.0
-        for row in range(self.buy_list.rowCount()):
-            spin_price = self.buy_list.cellWidget(row, 1)
-            spin_quantity = self.buy_list.cellWidget(row, 3)
-            if spin_price and spin_quantity:
-                total += spin_price.value() * spin_quantity.value()
-        self.sum_money.setText(f"{total:,.2f}")
 
     def open_add_medicine_dialog(self):
         dialog = MedicineInformationAdd_w(self.context, self)
         result = dialog.exec()
         if result == QDialog.DialogCode.Accepted:
             self.load_medicine_name_list()
+            # Cập nhật lại combobox cho các dòng đã có
             for row in range(self.buy_list.rowCount()):
                 combo = self.buy_list.cellWidget(row, 0)
                 if isinstance(combo, QComboBox):
@@ -1926,14 +1912,78 @@ class CreateStockDialog_w(QDialog):
                     if idx >= 0:
                         combo.setCurrentIndex(idx)
 
+    # ========== HÀM TÍNH TỔNG TIỀN & TỰ ĐỘNG GIÁ BÁN ==========
+    def update_sum_money(self):
+        total = 0.0
+        for row in range(self.buy_list.rowCount()):
+            spin_price = self.buy_list.cellWidget(row, 1)
+            spin_quantity = self.buy_list.cellWidget(row, 3)
+            if spin_price and spin_quantity:
+                total += spin_price.value() * spin_quantity.value()
+        self.sum_money.setText(f"{total:,.2f}")
+
+    def update_sale_price(self, row):
+        spin_price = self.buy_list.cellWidget(row, 1)
+        sale_item = self.buy_list.item(row, 2)
+        if spin_price and sale_item:
+            price = spin_price.value()
+            sale_price = round(price * 1.2, 2)  # Lấy giá bán = giá nhập * 1.2
+            sale_item.setText(str(sale_price))
+            self.update_sum_money()
+
+    # ========== HÀM XỬ LÝ DB ==========
+    def insert_stock(self, supplier_id, staff_id, payment_method_id, stock_date):
+        db = self.context.db_manager
+        sql = """
+            INSERT INTO stock (supplier_id, staff_id, payment_method_id, created_at)
+            VALUES (%s, %s, %s, %s)
+        """
+        db.execute(sql, (supplier_id, staff_id, payment_method_id, stock_date))
+        db.commit()
+        db.execute("SELECT LAST_INSERT_ID()")
+        stock_id = db.fetchone()[0]
+        return stock_id
+
+    def insert_or_update_medicine(self, medicine_name, supplier_id, quantity, price, sale_price, batch, exp_date):
+        db = self.context.db_manager
+        db.execute("SELECT medicine_id FROM medicine WHERE medicine_name=%s AND batch_number=%s", (medicine_name, batch))
+        med_exist = db.fetchone()
+        if med_exist:
+            medicine_id = med_exist[0]
+            db.execute(
+                "UPDATE medicine SET stock_quantity = stock_quantity + %s, unit_price=%s, sale_price=%s, expiration_date=%s WHERE medicine_id=%s",
+                (quantity, price, sale_price, exp_date, medicine_id)
+            )
+            db.commit()
+        else:
+            sql = """
+                INSERT INTO medicine (medicine_name, supplier_id, stock_quantity, unit_price, sale_price, batch_number, expiration_date)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            db.execute(sql, (medicine_name, supplier_id, quantity, price, sale_price, batch, exp_date))
+            db.commit()
+            db.execute("SELECT LAST_INSERT_ID()")
+            medicine_id = db.fetchone()[0]
+        return medicine_id
+
+    def insert_stock_detail(self, stock_id, medicine_id, quantity, price, batch, exp_date, note=""):
+        db = self.context.db_manager
+        sql = """
+            INSERT INTO stock_detail (stock_id, medicine_id, quantity, price, batch_number, expiration_date, note)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        db.execute(sql, (stock_id, medicine_id, quantity, price, batch, exp_date, note))
+        db.commit()
+
+    # ========== HÀM LƯU PHIẾU NHẬP ==========
     def save_stock(self):
         try:
+            db = self.context.db_manager
             staff_id = self.context.staff_id
             supplier_name = self.supplier.currentText()
             supplier_id = self.supplier_map.get(supplier_name)
             payment_name = self.payment_term.currentText()
             payment_method_id = self.payment_method_map.get(payment_name)
-            # Lấy ngày từ QDateEdit nếu muốn lưu, ví dụ:
             stock_date = self.stock_date.date().toString("yyyy-MM-dd")
 
             if not supplier_id:
@@ -1943,17 +1993,10 @@ class CreateStockDialog_w(QDialog):
                 QMessageBox.warning(self, "Lỗi", "Vui lòng chọn hình thức thanh toán hợp lệ.")
                 return
 
-            db = self.context.db_manager
+            # 1. Insert stock
+            stock_id = self.insert_stock(supplier_id, staff_id, payment_method_id, stock_date)
 
-            # 1. Insert vào stock, commit, lấy stock_id
-            sql_stock = """
-                INSERT INTO stock (supplier_id, staff_id, payment_method_id, created_at)
-                VALUES (%s, %s, %s, %s)
-            """
-            db.execute(sql_stock, (supplier_id, staff_id, payment_method_id, stock_date))
-            db.commit()
-            stock_id = db.connection.insert_id()
-
+            # 2. Insert/update medicine và lưu stock_detail
             medicines = []
             for row in range(self.buy_list.rowCount()):
                 combo = self.buy_list.cellWidget(row, 0)
@@ -1971,18 +2014,10 @@ class CreateStockDialog_w(QDialog):
                 if not medicine_name or quantity <= 0:
                     continue
 
-                # Insert thuốc mới, lấy medicine_id
-                sql_insert_medicine = """
-                    INSERT INTO medicine (medicine_name, supplier_id, stock_quantity, unit_price, sale_price, batch_number, expiration_date)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """
-                db.execute(sql_insert_medicine, (
+                medicine_id = self.insert_or_update_medicine(
                     medicine_name, supplier_id, quantity, price, sale_price, batch, exp_date
-                ))
-                medicine_id = db.connection.insert_id()
-
-                # Thêm vào chi tiết phiếu nhập
-                medicines.append((stock_id, medicine_id, quantity, price, batch, exp_date, ""))
+                )
+                medicines.append((medicine_id, quantity, price, batch, exp_date))
 
             if not medicines:
                 db.execute("DELETE FROM stock WHERE stock_id=%s", (stock_id,))
@@ -1990,23 +2025,15 @@ class CreateStockDialog_w(QDialog):
                 QMessageBox.warning(self, "Lỗi", "Vui lòng nhập ít nhất 1 dòng thuốc hợp lệ.")
                 return
 
-            sql_detail = """
-                INSERT INTO stock_detail (stock_id, medicine_id, quantity, price, batch_number, expiration_date, note)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
-            for med in medicines:
-                db.execute(sql_detail, med)
+            for medicine_id, quantity, price, batch, exp_date in medicines:
+                self.insert_stock_detail(stock_id, medicine_id, quantity, price, batch, exp_date)
 
-            db.commit()
             self.context.db_manager.log_action(staff_id, f"Tạo phiếu nhập kho: {stock_id}")
             QMessageBox.information(self, "Thành công", "Đã lưu phiếu nhập kho và cập nhật danh mục thuốc.")
             self.accept()
         except Exception as e:
             db.rollback()
             QMessageBox.warning(self, "Lỗi", f"Không thể lưu phiếu nhập: {e}")
-
-
-
 
 
 # Logs Window
