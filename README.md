@@ -32,7 +32,7 @@ SQL schema được lưu trong `medimanager.sql`.
 ## Sơ đồ quan hệ các thực thể
 https://dbdiagram.io/d/PROJECT-I-MEDICINE-MANAGEMENT-67ef9cc94f7afba184576060?utm_source=dbdiagram_embed&utm_medium=bottom_open
 
-## 🧩 Cấu trúc thư mục
+## Cấu trúc thư mục
 
 ```
 MediManager/
