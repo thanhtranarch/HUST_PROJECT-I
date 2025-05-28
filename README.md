@@ -126,7 +126,7 @@ SQL script mẫu: `medimanager.sql`
 - Xuất báo cáo định dạng PDF
 - Lọc báo cáo theo ngày/tháng/năm
 - Tích hợp API / phiên bản mobile
-- Giao diện hiện đại hơn (Dark/Light mode)
+- Giao diện hiện đại hơn
 
 ---
 
