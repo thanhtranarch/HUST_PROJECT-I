@@ -356,7 +356,7 @@
     <addaction name="actionStaff"/>
     <addaction name="actionStock"/>
     <addaction name="actionSupplier"/>
-    <addaction name="actionLog"/>
+    <addaction name="actionLogs"/>
     <addaction name="actionLog_out"/>
    </widget>
    <addaction name="menuGeneral_Management"/>
@@ -397,7 +397,7 @@
     <string>⮌ Log out</string>
    </property>
   </action>
-  <action name="actionLog">
+  <action name="actionLogs">
    <property name="text">
     <string>Logs</string>
    </property>

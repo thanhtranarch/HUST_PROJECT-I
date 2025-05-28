@@ -67,6 +67,7 @@ class Main_w(QMainWindow):
         self.actionCustomer.triggered.connect(self.goto_customer)
         self.actionStaff.triggered.connect(self.goto_staff)
         self.actionLog_out.triggered.connect(self.goto_login)
+        self.actionLogs.triggered.connect(self.goto_logs)
         
     def closeEvent(self, event):
         QApplication.quit()
@@ -107,8 +108,8 @@ class Main_w(QMainWindow):
         self.hide()
 
     def goto_logs(self):
-        self.log_window = Logs_w(self.context)
-        self.log_window.show()
+        self.logs_window = Logs_w(self.context)
+        self.logs_window.show()
         self.hide()
 
     def update_status_info(self):
@@ -980,7 +981,6 @@ class Logs_w(QMainWindow):
         self.load_log_data()
 
         # Connect signals
-        self.tableWidget.cellClicked.connect(self.handle_cell_click)
         self.tableWidget.setSortingEnabled(True)
         self.search_input.textChanged.connect(self.search_logs)
 
@@ -999,7 +999,7 @@ class Logs_w(QMainWindow):
             self.tableWidget.setColumnCount(4)
             self.tableWidget.setHorizontalHeaderLabels(["Log ID", "Staff ID", "Action", "Timestamp"])
             self.tableWidget.setSortingEnabled(False)
-
+            
             for row_idx, row_data in enumerate(results):
                 for col_idx, value in enumerate(row_data):
                     item = QTableWidgetItem(str(value))
@@ -1008,7 +1008,8 @@ class Logs_w(QMainWindow):
 
             self.tableWidget.setSortingEnabled(True)
             self.tableWidget.resizeColumnsToContents()
-
+            self.tableWidget.setColumnWidth(2, 500) 
+            self.tableWidget.setColumnWidth(3, 150) 
         except Exception as e:
             QMessageBox.warning(self, "Lỗi", f"Không thể tải log: {e}")
     def search_logs(self):
@@ -1016,7 +1017,7 @@ class Logs_w(QMainWindow):
 
         for row in range(self.tableWidget.rowCount()):
             visible = False
-            for col in [1, 2]:  # Staff ID và Action
+            if col == 3:  
                 item = self.tableWidget.item(row, col)
                 if item and keyword in item.text().lower():
                     visible = True
