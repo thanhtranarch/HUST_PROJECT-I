@@ -36,12 +36,27 @@ https://dbdiagram.io/d/PROJECT-I-MEDICINE-MANAGEMENT-67ef9cc94f7afba184576060?ut
 
 ```
 MediManager/
-├── main.py              # Điểm khởi chạy chính
-├── main_ui.py           # Generated UI từ main.ui (PySide)
-├── DBManager.py         # Kết nối và thao tác cơ sở dữ liệu
-├── ui/                  # Thư mục chứa các file giao diện .ui
-├── icon/                # Icon dùng cho giao diện (app_icon_dark/light)
-└── README.md            # (File này)
+│
+├── MediManager.py          # Điểm bắt đầu chương trình
+├── app_context.py          # Kết nối CSDL
+├── constants.py            # Đường dẫn icon, query mẫu, v.v.
+├── utils/
+│   └── helpers.py          # Các hàm dùng chung (load_ui, logging)
+├── services/
+│   ├── db_service.py       # Đóng gói thao tác DB
+│   └── report_service.py   # Xuất báo cáo
+├── screens/
+│   ├── main_window.py
+│   ├── login.py
+│   ├── register.py
+│   ├── supplier.py
+│   ├── customer.py
+│   ├── staff.py
+│   ├── medicine.py
+│   ├── invoice.py
+│   └── stock.py
+└── ui/                     # Các file .ui
+
 ```
 ## 🧾 Các chức năng chính
 
