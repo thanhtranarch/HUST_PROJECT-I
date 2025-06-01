@@ -47,8 +47,7 @@ MediManager/
 │   └── report_service.py   # Xuất báo cáo
 ├── screens/
 │   ├── main_window.py
-│   ├── login.py
-│   ├── register.py
+│   ├── auth.py
 │   ├── supplier.py
 │   ├── customer.py
 │   ├── staff.py
