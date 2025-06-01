@@ -55,7 +55,9 @@ MediManager/
 │   ├── medicine.py
 │   ├── invoice.py
 │   └── stock.py
-└── ui/                     # Các file .ui
+├── ui/                     # Các file .ui
+└── icons/                  # Các file icon
+
 
 ```
 ## 🧾 Các chức năng chính
